@@ -4,7 +4,8 @@ import (
 	"log"
 	"sync"
 
-	arg "github.com/alexflint/go-arg"
+	"github.com/alexflint/go-arg"
+	"github.com/stianeikeland/go-rpio"
 )
 
 func main() {
@@ -23,12 +24,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var wg sync.WaitGroup
+	// Prep for GPIO access
+	err = rpio.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	// Launch the thermostat go routines
+	var wg sync.WaitGroup
 	for _, sensor := range config.Sensors {
 		wg.Add(1)
 		go RunThermostat(sensor)
 	}
-
 	wg.Wait()
+
+	// Close the GPIO access
+	rpio.Close()
 }

@@ -14,10 +14,10 @@ type Sensor struct {
 	LowTemp     float64 `yaml:"lowtemp"`
 	HeatGPIO    int32   `yaml:"heatgpio"`
 	HeatPullup  bool    `yaml:"heatpullup"`
-	HeatMinutes int32   `yaml:"heatminutes"`
+	HeatMinutes float64 `yaml:"heatminutes"`
 	CoolGPIO    int32   `yaml:"coolgpio"`
 	CoolPullup  bool    `yaml:"coolpullup"`
-	CoolMinutes int32   `yaml:"coolminutes"`
+	CoolMinutes float64 `yaml:"coolminutes"`
 }
 
 // Config contains the applications configuration
