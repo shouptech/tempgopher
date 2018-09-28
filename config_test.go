@@ -12,10 +12,10 @@ func Test_LoadConfig(t *testing.T) {
 		Alias:       "fermenter",
 		HighTemp:    8,
 		LowTemp:     4,
-		HeatGpio:    5,
+		HeatGPIO:    5,
 		HeatPullup:  true,
 		HeatMinutes: 5,
-		CoolGpio:    17,
+		CoolGPIO:    17,
 		CoolPullup:  false,
 		CoolMinutes: 10}
 
