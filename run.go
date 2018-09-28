@@ -25,7 +25,7 @@ func ReadTemperature(id string) (float64, error) {
 }
 
 // RunThermostat monitors the temperature of the supplied sensor and does its best to keep it at the desired state.
-func RunThermostat(sensor *Sensor) {
+func RunThermostat(sensor Sensor) {
 	for {
 		t, err := ReadTemperature(sensor.ID)
 

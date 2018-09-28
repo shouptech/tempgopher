@@ -1,23 +1,34 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"sync"
 
-	"github.com/yryz/ds18b20"
+	arg "github.com/alexflint/go-arg"
 )
 
 func main() {
-	sensors, err := ds18b20.Sensors()
+	var args struct {
+		Action     string `arg:"required,positional" help:"run"`
+		ConfigFile string `arg:"-c,required" help:"path to config file"`
+	}
+
+	p := arg.MustParse(&args)
+	if args.Action != "run" {
+		p.Fail("ACTION must be run")
+	}
+
+	config, err := LoadConfig(args.ConfigFile)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	fmt.Printf("Sensors: %v\n", sensors)
+	var wg sync.WaitGroup
 
-	for _, sensor := range sensors {
-		t, err := ds18b20.Temperature(sensor)
-		if err == nil {
-			fmt.Printf("Sensor: %s, Temperature %.2f°C\n", sensor, t)
-		}
+	for _, sensor := range config.Sensors {
+		wg.Add(1)
+		go RunThermostat(sensor)
 	}
+
+	wg.Wait()
 }
