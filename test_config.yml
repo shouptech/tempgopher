@@ -1,0 +1,11 @@
+sensors:
+- id: 28-000008083108
+  alias: fermenter
+  hightemp: 8
+  lowtemp: 4
+  heatgpio: 5
+  heatpullup: true
+  heatminutes: 5
+  coolgpio: 17
+  coolpullup: false
+  coolminutes: 10
