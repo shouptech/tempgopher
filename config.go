@@ -13,10 +13,10 @@ type Sensor struct {
 	HighTemp    float64 `yaml:"hightemp"`
 	LowTemp     float64 `yaml:"lowtemp"`
 	HeatGPIO    int32   `yaml:"heatgpio"`
-	HeatPullup  bool    `yaml:"heatpullup"`
+	HeatInvert  bool    `yaml:"heatinvert"`
 	HeatMinutes float64 `yaml:"heatminutes"`
 	CoolGPIO    int32   `yaml:"coolgpio"`
-	CoolPullup  bool    `yaml:"coolpullup"`
+	CoolInvert  bool    `yaml:"coolinvert"`
 	CoolMinutes float64 `yaml:"coolminutes"`
 }
 

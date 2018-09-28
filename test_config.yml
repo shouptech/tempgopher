@@ -4,8 +4,8 @@ sensors:
   hightemp: 8
   lowtemp: 4
   heatgpio: 5
-  heatpullup: true
+  heatinvert: true
   heatminutes: 5
   coolgpio: 17
-  coolpullup: false
+  coolinvert: false
   coolminutes: 10
