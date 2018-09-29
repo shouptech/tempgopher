@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"log"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/stianeikeland/go-rpio"
@@ -61,7 +63,7 @@ func GetPinState(pin rpio.Pin, invert bool) bool {
 }
 
 // RunThermostat monitors the temperature of the supplied sensor and does its best to keep it at the desired state.
-func RunThermostat(sensor Sensor) {
+func RunThermostat(sensor Sensor, sig chan os.Signal, wg *sync.WaitGroup) {
 	var s State
 	s.Changed = time.Now()
 
@@ -74,7 +76,13 @@ func RunThermostat(sensor Sensor) {
 	SetPinState(cpin, false, sensor.CoolInvert)
 	SetPinState(hpin, false, sensor.HeatInvert)
 
-	for {
+	run := true
+	go func() {
+		<-sig
+		run = false
+	}()
+
+	for run {
 		t, err := ReadTemperature(sensor.ID)
 		if err != nil {
 			log.Panicln(err)
@@ -115,4 +123,8 @@ func RunThermostat(sensor Sensor) {
 		//s.Heating = GetPinState(hpin, sensor.HeatInvert)
 		log.Printf("%s Temp: %.2f, Cooling: %t, Heating: %t, Duration: %.1f", sensor.Alias, s.Temp, s.Cooling, s.Heating, min)
 	}
+
+	SetPinState(cpin, false, sensor.CoolInvert)
+	SetPinState(hpin, false, sensor.HeatInvert)
+	wg.Done()
 }

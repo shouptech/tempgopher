@@ -2,7 +2,10 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/alexflint/go-arg"
 	"github.com/stianeikeland/go-rpio"
@@ -31,10 +34,14 @@ func main() {
 	}
 
 	// Launch the thermostat go routines
+	sig := make(chan os.Signal)
+	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(sig, os.Interrupt, syscall.SIGINT)
+
 	var wg sync.WaitGroup
 	for _, sensor := range config.Sensors {
 		wg.Add(1)
-		go RunThermostat(sensor)
+		go RunThermostat(sensor, sig, &wg)
 	}
 	wg.Wait()
 
