@@ -71,6 +71,9 @@ func RunThermostat(sensor Sensor) {
 	hpin := rpio.Pin(sensor.HeatGPIO)
 	hpin.Output()
 
+	SetPinState(cpin, false, sensor.CoolInvert)
+	SetPinState(hpin, false, sensor.HeatInvert)
+
 	for {
 		t, err := ReadTemperature(sensor.ID)
 		if err != nil {
