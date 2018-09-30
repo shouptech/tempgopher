@@ -51,19 +51,8 @@ func SetPinState(pin rpio.Pin, on bool, invert bool) {
 	}
 }
 
-// GetPinState will return true if the pin is on.
-// If invert is false, the pin will be on when high.
-func GetPinState(pin rpio.Pin, invert bool) bool {
-	switch pin.Read() {
-	case rpio.High:
-		return !invert
-	default:
-		return invert
-	}
-}
-
 // RunThermostat monitors the temperature of the supplied sensor and does its best to keep it at the desired state.
-func RunThermostat(sensor Sensor, sig chan os.Signal, wg *sync.WaitGroup) {
+func RunThermostat(sensor Sensor, sig <-chan os.Signal, wg *sync.WaitGroup) {
 	var s State
 	s.Changed = time.Now()
 
@@ -93,34 +82,35 @@ func RunThermostat(sensor Sensor, sig chan os.Signal, wg *sync.WaitGroup) {
 		switch {
 		case t > sensor.HighTemp && t < sensor.HighTemp:
 			log.Panic("Invalid state! Temperature is too high AND too low!")
-		case t > sensor.HighTemp && GetPinState(hpin, sensor.HeatInvert):
+		case t > sensor.HighTemp && s.Heating:
 			SetPinState(hpin, false, sensor.HeatInvert)
 			log.Printf("%s Turned off heat", sensor.Alias)
+			s.Heating = false
 			s.Changed = time.Now()
+		case t > sensor.HighTemp && s.Cooling:
+			break
 		case t > sensor.HighTemp && min > sensor.CoolMinutes:
 			SetPinState(cpin, true, sensor.CoolInvert)
 			log.Printf("%s Turned on cool", sensor.Alias)
+			s.Cooling = true
 			s.Changed = time.Now()
-		case t > sensor.HighTemp:
-			break
-		case t < sensor.LowTemp && GetPinState(cpin, sensor.CoolInvert):
+		case t < sensor.LowTemp && s.Cooling:
 			SetPinState(cpin, false, sensor.CoolInvert)
 			log.Printf("%s Turned off cool", sensor.Alias)
+			s.Cooling = false
 			s.Changed = time.Now()
+		case t < sensor.LowTemp && s.Heating:
+			break
 		case t < sensor.LowTemp && min > sensor.HeatMinutes:
 			SetPinState(hpin, true, sensor.HeatInvert)
 			log.Printf("%s Turned on heat", sensor.Alias)
+			s.Heating = true
 			s.Changed = time.Now()
-		case t < sensor.LowTemp:
+		default:
 			break
-		default: // Turn off both switches
-			SetPinState(cpin, false, sensor.CoolInvert)
-			SetPinState(hpin, false, sensor.HeatInvert)
 		}
 
 		s.Temp = t
-		//s.Cooling = GetPinState(cpin, sensor.CoolInvert)
-		//s.Heating = GetPinState(hpin, sensor.HeatInvert)
 		log.Printf("%s Temp: %.2f, Cooling: %t, Heating: %t, Duration: %.1f", sensor.Alias, s.Temp, s.Cooling, s.Heating, min)
 	}
 
