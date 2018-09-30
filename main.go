@@ -45,11 +45,13 @@ func main() {
 		run = false
 	}()
 
+	sc := make(chan State)
+
 	// Launch the thermostat go routines
 	var wg sync.WaitGroup
 	for _, sensor := range config.Sensors {
 		wg.Add(1)
-		go RunThermostat(sensor, &run, &wg)
+		go RunThermostat(sensor, sc, &run, &wg)
 	}
 	wg.Wait()
 

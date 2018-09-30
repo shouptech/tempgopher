@@ -12,6 +12,7 @@ import (
 
 // State represents the current state of the thermostat
 type State struct {
+	ID      string
 	Temp    float64
 	Cooling bool
 	Heating bool
@@ -35,9 +36,9 @@ func ReadTemperature(id string) (float64, error) {
 	return 0.0, errors.New("Sensor not found")
 }
 
-// SetPinState is used to turn a pin on or off.
+// PinSwitch is used to turn a pin on or off.
 // If invert is false, the pin will be high turned on, and low when turned off.
-func SetPinState(pin rpio.Pin, on bool, invert bool) {
+func PinSwitch(pin rpio.Pin, on bool, invert bool) {
 	switch {
 	case on && !invert:
 		pin.High()
@@ -51,8 +52,9 @@ func SetPinState(pin rpio.Pin, on bool, invert bool) {
 }
 
 // RunThermostat monitors the temperature of the supplied sensor and does its best to keep it at the desired state.
-func RunThermostat(sensor Sensor, run *bool, wg *sync.WaitGroup) {
+func RunThermostat(sensor Sensor, sc chan<- State, run *bool, wg *sync.WaitGroup) {
 	var s State
+	s.ID = sensor.ID
 	s.Changed = time.Now()
 
 	cpin := rpio.Pin(sensor.CoolGPIO)
@@ -61,8 +63,8 @@ func RunThermostat(sensor Sensor, run *bool, wg *sync.WaitGroup) {
 	hpin := rpio.Pin(sensor.HeatGPIO)
 	hpin.Output()
 
-	SetPinState(cpin, false, sensor.CoolInvert)
-	SetPinState(hpin, false, sensor.HeatInvert)
+	PinSwitch(cpin, false, sensor.CoolInvert)
+	PinSwitch(hpin, false, sensor.HeatInvert)
 
 	for *run {
 		t, err := ReadTemperature(sensor.ID)
@@ -76,26 +78,26 @@ func RunThermostat(sensor Sensor, run *bool, wg *sync.WaitGroup) {
 		case t > sensor.HighTemp && t < sensor.HighTemp:
 			log.Panic("Invalid state! Temperature is too high AND too low!")
 		case t > sensor.HighTemp && s.Heating:
-			SetPinState(hpin, false, sensor.HeatInvert)
+			PinSwitch(hpin, false, sensor.HeatInvert)
 			log.Printf("%s Turned off heat", sensor.Alias)
 			s.Heating = false
 			s.Changed = time.Now()
 		case t > sensor.HighTemp && s.Cooling:
 			break
 		case t > sensor.HighTemp && min > sensor.CoolMinutes:
-			SetPinState(cpin, true, sensor.CoolInvert)
+			PinSwitch(cpin, true, sensor.CoolInvert)
 			log.Printf("%s Turned on cool", sensor.Alias)
 			s.Cooling = true
 			s.Changed = time.Now()
 		case t < sensor.LowTemp && s.Cooling:
-			SetPinState(cpin, false, sensor.CoolInvert)
+			PinSwitch(cpin, false, sensor.CoolInvert)
 			log.Printf("%s Turned off cool", sensor.Alias)
 			s.Cooling = false
 			s.Changed = time.Now()
 		case t < sensor.LowTemp && s.Heating:
 			break
 		case t < sensor.LowTemp && min > sensor.HeatMinutes:
-			SetPinState(hpin, true, sensor.HeatInvert)
+			PinSwitch(hpin, true, sensor.HeatInvert)
 			log.Printf("%s Turned on heat", sensor.Alias)
 			s.Heating = true
 			s.Changed = time.Now()
@@ -105,9 +107,10 @@ func RunThermostat(sensor Sensor, run *bool, wg *sync.WaitGroup) {
 
 		s.Temp = t
 		log.Printf("%s Temp: %.2f, Cooling: %t, Heating: %t, Duration: %.1f", sensor.Alias, s.Temp, s.Cooling, s.Heating, min)
+		sc <- s
 	}
 
-	SetPinState(cpin, false, sensor.CoolInvert)
-	SetPinState(hpin, false, sensor.HeatInvert)
+	PinSwitch(cpin, false, sensor.CoolInvert)
+	PinSwitch(hpin, false, sensor.HeatInvert)
 	wg.Done()
 }
