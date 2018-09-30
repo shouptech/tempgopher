@@ -107,7 +107,13 @@ func RunThermostat(sensor Sensor, sc chan<- State, run *bool, wg *sync.WaitGroup
 
 		s.Temp = t
 		log.Printf("%s Temp: %.2f, Cooling: %t, Heating: %t, Duration: %.1f", sensor.Alias, s.Temp, s.Cooling, s.Heating, min)
-		sc <- s
+
+		select {
+		case sc <- s:
+			break
+		default:
+			break
+		}
 	}
 
 	PinSwitch(cpin, false, sensor.CoolInvert)
