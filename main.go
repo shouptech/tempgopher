@@ -36,7 +36,6 @@ func main() {
 	// run is tracking whether or not the thermostats should run
 	run := true
 
-	// Launch the thermostat go routines
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT)
@@ -46,6 +45,7 @@ func main() {
 		run = false
 	}()
 
+	// Launch the thermostat go routines
 	var wg sync.WaitGroup
 	for _, sensor := range config.Sensors {
 		wg.Add(1)
