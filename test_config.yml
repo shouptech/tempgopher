@@ -9,3 +9,4 @@ sensors:
   coolgpio: 17
   coolinvert: false
   coolminutes: 10
+  verbose: true

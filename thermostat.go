@@ -76,29 +76,25 @@ func RunThermostat(sensor Sensor, sc chan<- State, run *bool, wg *sync.WaitGroup
 
 		switch {
 		case t > sensor.HighTemp && t < sensor.HighTemp:
-			log.Panic("Invalid state! Temperature is too high AND too low!")
+			log.Println("Invalid state! Temperature is too high AND too low!")
 		case t > sensor.HighTemp && s.Heating:
 			PinSwitch(hpin, false, sensor.HeatInvert)
-			log.Printf("%s Turned off heat", sensor.Alias)
 			s.Heating = false
 			s.Changed = time.Now()
 		case t > sensor.HighTemp && s.Cooling:
 			break
 		case t > sensor.HighTemp && min > sensor.CoolMinutes:
 			PinSwitch(cpin, true, sensor.CoolInvert)
-			log.Printf("%s Turned on cool", sensor.Alias)
 			s.Cooling = true
 			s.Changed = time.Now()
 		case t < sensor.LowTemp && s.Cooling:
 			PinSwitch(cpin, false, sensor.CoolInvert)
-			log.Printf("%s Turned off cool", sensor.Alias)
 			s.Cooling = false
 			s.Changed = time.Now()
 		case t < sensor.LowTemp && s.Heating:
 			break
 		case t < sensor.LowTemp && min > sensor.HeatMinutes:
 			PinSwitch(hpin, true, sensor.HeatInvert)
-			log.Printf("%s Turned on heat", sensor.Alias)
 			s.Heating = true
 			s.Changed = time.Now()
 		default:
@@ -106,7 +102,9 @@ func RunThermostat(sensor Sensor, sc chan<- State, run *bool, wg *sync.WaitGroup
 		}
 
 		s.Temp = t
-		log.Printf("%s Temp: %.2f, Cooling: %t, Heating: %t, Duration: %.1f", sensor.Alias, s.Temp, s.Cooling, s.Heating, min)
+		if sensor.Verbose {
+			log.Printf("%s Temp: %.2f, Cooling: %t, Heating: %t, Duration: %.1f", sensor.Alias, s.Temp, s.Cooling, s.Heating, min)
+		}
 
 		select {
 		case sc <- s:

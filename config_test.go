@@ -17,7 +17,9 @@ func Test_LoadConfig(t *testing.T) {
 		HeatMinutes: 5,
 		CoolGPIO:    17,
 		CoolInvert:  false,
-		CoolMinutes: 10}
+		CoolMinutes: 10,
+		Verbose:     true,
+	}
 
 	testConfig := Config{Sensors: []Sensor{testSensor}}
 

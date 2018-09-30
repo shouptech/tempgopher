@@ -18,6 +18,7 @@ type Sensor struct {
 	CoolGPIO    int32   `yaml:"coolgpio"`
 	CoolInvert  bool    `yaml:"coolinvert"`
 	CoolMinutes float64 `yaml:"coolminutes"`
+	Verbose     bool    `yaml:"verbose"`
 }
 
 // Config contains the applications configuration
