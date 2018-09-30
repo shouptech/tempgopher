@@ -12,11 +12,11 @@ import (
 
 // State represents the current state of the thermostat
 type State struct {
-	ID      string
-	Temp    float64
-	Cooling bool
-	Heating bool
-	Changed time.Time
+	Alias   string    `json:"alias"`
+	Temp    float64   `json:"temp"`
+	Cooling bool      `json:"cooling"`
+	Heating bool      `json:"heating"`
+	Changed time.Time `json:"changed"`
 }
 
 // ReadTemperature will return the current temperature (in degrees celsius) of a specific sensor.
@@ -54,7 +54,7 @@ func PinSwitch(pin rpio.Pin, on bool, invert bool) {
 // RunThermostat monitors the temperature of the supplied sensor and does its best to keep it at the desired state.
 func RunThermostat(sensor Sensor, sc chan<- State, run *bool, wg *sync.WaitGroup) {
 	var s State
-	s.ID = sensor.ID
+	s.Alias = sensor.Alias
 	s.Changed = time.Now()
 
 	cpin := rpio.Pin(sensor.CoolGPIO)
@@ -114,6 +114,7 @@ func RunThermostat(sensor Sensor, sc chan<- State, run *bool, wg *sync.WaitGroup
 		}
 	}
 
+	log.Printf("%s Shutting down thermostat", sensor.Alias)
 	PinSwitch(cpin, false, sensor.CoolInvert)
 	PinSwitch(hpin, false, sensor.HeatInvert)
 	wg.Done()
