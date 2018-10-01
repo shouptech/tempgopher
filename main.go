@@ -39,6 +39,7 @@ func main() {
 	// done is used to signal the web frontend to stop
 	done := make(chan bool)
 
+	// Catch SIGTERM and SIGINT
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	signal.Notify(sig, os.Interrupt, syscall.SIGINT)
