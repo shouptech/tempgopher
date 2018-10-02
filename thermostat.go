@@ -155,6 +155,7 @@ func RunThermostat(path string, sc chan<- State, wg *sync.WaitGroup) {
 	go func() {
 		for {
 			<-hup
+			log.Println("Reloading configuration")
 			config, err = LoadConfig(path)
 			if err != nil {
 				log.Panicln(err)
