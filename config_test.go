@@ -23,10 +23,12 @@ func Test_LoadConfig(t *testing.T) {
 
 	testConfig := Config{Sensors: []Sensor{testSensor}}
 
-	loadedConfig, err := LoadConfig("test_config.yml")
+	loadedConfig, err := LoadConfig("tests/test_config.yml")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, &testConfig, loadedConfig)
 
-	_, err = LoadConfig("thisfiledoesnotexist")
+	_, err = LoadConfig("tests/duplicate_id.yml")
+	assert.NotEqual(t, nil, err)
+	_, err = LoadConfig("tests/duplicate_alias.yml")
 	assert.NotEqual(t, nil, err)
 }
