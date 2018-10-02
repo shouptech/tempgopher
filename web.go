@@ -4,7 +4,10 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -44,7 +47,7 @@ func SetupRouter() *gin.Engine {
 }
 
 // RunWeb launches a web server. sc is used to update the states from the Thermostats.
-func RunWeb(sc <-chan State, done <-chan bool, wg *sync.WaitGroup) {
+func RunWeb(sc <-chan State, wg *sync.WaitGroup) {
 	// Update sensor states when a new state comes back from the thermostat.
 	states = make(map[string]State)
 	go func() {
@@ -68,7 +71,10 @@ func RunWeb(sc <-chan State, done <-chan bool, wg *sync.WaitGroup) {
 		}
 	}()
 
-	// Wait for the done signal
+	// Listen for SIGTERM & SIGINT
+	done := make(chan os.Signal)
+	signal.Notify(done, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT)
 	<-done
 	log.Println("Shutdown Server ...")
 

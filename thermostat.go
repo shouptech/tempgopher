@@ -3,7 +3,10 @@ package main
 import (
 	"errors"
 	"log"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/stianeikeland/go-rpio"
@@ -16,6 +19,7 @@ type State struct {
 	Temp    float64   `json:"temp"`
 	Cooling bool      `json:"cooling"`
 	Heating bool      `json:"heating"`
+	When    time.Time `json:"reading"`
 	Changed time.Time `json:"changed"`
 }
 
@@ -51,71 +55,151 @@ func PinSwitch(pin rpio.Pin, on bool, invert bool) {
 	}
 }
 
-// RunThermostat monitors the temperature of the supplied sensor and does its best to keep it at the desired state.
-func RunThermostat(sensor Sensor, sc chan<- State, run *bool, wg *sync.WaitGroup) {
-	var s State
-	s.Alias = sensor.Alias
-	s.Changed = time.Now()
+// ProcessSensor uses the current temperature and last state to determine if changes need to be made to switches.
+func ProcessSensor(sensor Sensor, state State) (State, error) {
+	// Read the current temperature
+	temp, err := ReadTemperature(sensor.ID)
+	if err != nil {
+		log.Panicln(err)
+	}
 
+	// Initialize the pins
 	cpin := rpio.Pin(sensor.CoolGPIO)
 	cpin.Output()
-
 	hpin := rpio.Pin(sensor.HeatGPIO)
 	hpin.Output()
 
+	// Calculate duration
+	duration := time.Since(state.Changed).Minutes()
+
+	switch {
+	case temp > sensor.HighTemp && temp < sensor.HighTemp:
+		log.Println("Invalid state! Temperature is too high AND too low!")
+	case temp > sensor.HighTemp && state.Heating:
+		PinSwitch(hpin, false, sensor.HeatInvert)
+		state.Heating = false
+		state.Changed = time.Now()
+	case temp > sensor.HighTemp && state.Cooling:
+		break
+	case temp > sensor.HighTemp && duration > sensor.CoolMinutes:
+		PinSwitch(cpin, true, sensor.CoolInvert)
+		state.Cooling = true
+		state.Changed = time.Now()
+	case temp < sensor.LowTemp && state.Cooling:
+		PinSwitch(cpin, false, sensor.CoolInvert)
+		state.Cooling = false
+		state.Changed = time.Now()
+	case temp < sensor.LowTemp && state.Heating:
+		break
+	case temp < sensor.LowTemp && duration > sensor.HeatMinutes:
+		PinSwitch(hpin, true, sensor.HeatInvert)
+		state.Heating = true
+		state.Changed = time.Now()
+	default:
+		break
+	}
+
+	state.Temp = temp
+	if sensor.Verbose {
+		log.Printf("%s Temp: %.2f, Cooling: %t, Heating: %t, Duration: %.1f", sensor.Alias, state.Temp, state.Cooling, state.Heating, duration)
+	}
+
+	return state, nil
+}
+
+// TurnOffSensor turns off all switches for an individual sensor
+func TurnOffSensor(sensor Sensor) {
+	cpin := rpio.Pin(sensor.CoolGPIO)
+	cpin.Output()
 	PinSwitch(cpin, false, sensor.CoolInvert)
+
+	hpin := rpio.Pin(sensor.HeatGPIO)
+	hpin.Output()
 	PinSwitch(hpin, false, sensor.HeatInvert)
+}
 
-	for *run {
-		t, err := ReadTemperature(sensor.ID)
-		if err != nil {
-			log.Panicln(err)
+// TurnOffSensors turns off all sensors defined in the config
+func TurnOffSensors(config Config) {
+	for _, sensor := range config.Sensors {
+		TurnOffSensor(sensor)
+	}
+}
+
+// RunThermostat monitors the temperature of the supplied sensor and does its best to keep it at the desired state.
+func RunThermostat(path string, sc chan<- State, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	// Load Config
+	config, err := LoadConfig(path)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	// Prep for GPIO access
+	err = rpio.Open()
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer TurnOffSensors(*config)
+	defer rpio.Close()
+
+	// Track if thermostats should run
+	run := true
+
+	// Start with everything off
+	TurnOffSensors(*config)
+
+	// Listen for SIGHUP to reload config
+	hup := make(chan os.Signal)
+	signal.Notify(hup, os.Interrupt, syscall.SIGHUP)
+	go func() {
+		for {
+			<-hup
+			config, err = LoadConfig(path)
+			if err != nil {
+				log.Panicln(err)
+			}
 		}
+	}()
 
-		min := time.Since(s.Changed).Minutes()
+	// Listen for SIGTERM & SIGINT to quit
+	sig := make(chan os.Signal)
+	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(sig, os.Interrupt, syscall.SIGINT)
+	go func() {
+		<-sig
+		run = false
+	}()
 
-		switch {
-		case t > sensor.HighTemp && t < sensor.HighTemp:
-			log.Println("Invalid state! Temperature is too high AND too low!")
-		case t > sensor.HighTemp && s.Heating:
-			PinSwitch(hpin, false, sensor.HeatInvert)
-			s.Heating = false
-			s.Changed = time.Now()
-		case t > sensor.HighTemp && s.Cooling:
-			break
-		case t > sensor.HighTemp && min > sensor.CoolMinutes:
-			PinSwitch(cpin, true, sensor.CoolInvert)
-			s.Cooling = true
-			s.Changed = time.Now()
-		case t < sensor.LowTemp && s.Cooling:
-			PinSwitch(cpin, false, sensor.CoolInvert)
-			s.Cooling = false
-			s.Changed = time.Now()
-		case t < sensor.LowTemp && s.Heating:
-			break
-		case t < sensor.LowTemp && min > sensor.HeatMinutes:
-			PinSwitch(hpin, true, sensor.HeatInvert)
-			s.Heating = true
-			s.Changed = time.Now()
-		default:
-			break
-		}
+	states := make(map[string]State)
+	// For each sensor, run through the thermostat logic
+	for run {
+		for _, v := range config.Sensors {
+			// Create an initial state if there's not one already
+			if _, ok := states[v.ID]; !ok {
+				state := State{
+					Alias:   v.Alias,
+					When:    time.Now(),
+					Changed: time.Now(),
+				}
+				states[v.ID] = state
+			}
 
-		s.Temp = t
-		if sensor.Verbose {
-			log.Printf("%s Temp: %.2f, Cooling: %t, Heating: %t, Duration: %.1f", sensor.Alias, s.Temp, s.Cooling, s.Heating, min)
-		}
+			// Process the sensor
+			states[v.ID], err = ProcessSensor(v, states[v.ID])
+			if err != nil {
+				log.Panicln(err)
+			}
 
-		select {
-		case sc <- s:
-			break
-		default:
-			break
+			// Write the returned state to the channel (don't block if nothing is available to listen)
+			select {
+			case sc <- states[v.ID]:
+				break
+			default:
+				break
+			}
 		}
 	}
 
-	log.Printf("%s Shutting down thermostat", sensor.Alias)
-	PinSwitch(cpin, false, sensor.CoolInvert)
-	PinSwitch(hpin, false, sensor.HeatInvert)
-	wg.Done()
+	log.Println("Shutting down thermostat")
 }
