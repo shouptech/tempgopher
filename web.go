@@ -13,26 +13,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var states map[string]State
-
 // PingHandler responds to get requests with the message "pong".
 func PingHandler(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
 }
 
 // StatusHandler responds to get requests with the current status of a sensor
-func StatusHandler(c *gin.Context) {
-	if c.Param("alias") == "/" {
-		c.JSON(http.StatusOK, states)
-	} else if val, ok := states[c.Param("alias")[1:]]; ok {
-		c.JSON(http.StatusOK, val)
-	} else {
-		c.JSON(http.StatusNotFound, "Not found")
+func StatusHandler(states *map[string]State) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		if c.Param("alias") == "/" {
+			c.JSON(http.StatusOK, states)
+		} else if val, ok := (*states)[c.Param("alias")[1:]]; ok {
+			c.JSON(http.StatusOK, val)
+		} else {
+			c.JSON(http.StatusNotFound, "Not found")
+		}
 	}
+
+	return gin.HandlerFunc(fn)
 }
 
 // SetupRouter initializes the gin router.
-func SetupRouter() *gin.Engine {
+func SetupRouter(states *map[string]State) *gin.Engine {
 	r := gin.Default()
 
 	gin.SetMode(gin.ReleaseMode)
@@ -41,7 +43,7 @@ func SetupRouter() *gin.Engine {
 	r.GET("/ping", PingHandler)
 
 	// Status
-	r.GET("/api/status/*alias", StatusHandler)
+	r.GET("/api/status/*alias", StatusHandler(states))
 
 	return r
 }
@@ -49,7 +51,7 @@ func SetupRouter() *gin.Engine {
 // RunWeb launches a web server. sc is used to update the states from the Thermostats.
 func RunWeb(sc <-chan State, wg *sync.WaitGroup) {
 	// Update sensor states when a new state comes back from the thermostat.
-	states = make(map[string]State)
+	states := make(map[string]State)
 	go func() {
 		for {
 			s := <-sc
@@ -58,7 +60,7 @@ func RunWeb(sc <-chan State, wg *sync.WaitGroup) {
 	}()
 
 	// Launch the web server
-	r := SetupRouter()
+	r := SetupRouter(&states)
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: r,

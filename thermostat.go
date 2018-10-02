@@ -63,6 +63,8 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 		log.Panicln(err)
 	}
 
+	state.When = time.Now()
+
 	// Initialize the pins
 	cpin := rpio.Pin(sensor.CoolGPIO)
 	cpin.Output()
@@ -72,6 +74,11 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	// Calculate duration
 	duration := time.Since(state.Changed).Minutes()
 
+	// When things reach the right temperature, set the duration to the future
+	// TODO: Better handling of this. Changed should maintain when the state changed.
+	//       Probably need a new flag in the State struct.
+	future := time.Now().AddDate(10, 0, 0)
+
 	switch {
 	case temp > sensor.HighTemp && temp < sensor.LowTemp:
 		log.Println("Invalid state! Temperature is too high AND too low!")
@@ -79,7 +86,7 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	case temp > sensor.LowTemp && state.Heating:
 		PinSwitch(hpin, false, sensor.HeatInvert)
 		state.Heating = false
-		state.Changed = time.Unix(1<<63-62135596801, 999999999)
+		state.Changed = future
 	// Temperature is too high and the cooling switch is still on, do nothing
 	case temp > sensor.HighTemp && state.Cooling:
 		break
@@ -95,7 +102,7 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	case temp < sensor.HighTemp && state.Cooling:
 		PinSwitch(cpin, false, sensor.CoolInvert)
 		state.Cooling = false
-		state.Changed = time.Unix(1<<63-62135596801, 999999999)
+		state.Changed = future
 	// Temperature is too low and the heating switch is on, do nothing
 	case temp < sensor.LowTemp && state.Heating:
 		break
