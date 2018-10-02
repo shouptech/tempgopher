@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
@@ -35,6 +36,22 @@ func LoadConfig(path string) (*Config, error) {
 
 	var config Config
 	yaml.Unmarshal(data, &config)
+
+	ids := make(map[string]bool)
+	aliases := make(map[string]bool)
+	for _, v := range config.Sensors {
+		if !ids[v.ID] {
+			ids[v.ID] = true
+		} else {
+			return nil, errors.New("Duplicate sensor ID found in configuration")
+		}
+
+		if !aliases[v.Alias] {
+			aliases[v.Alias] = true
+		} else {
+			return nil, errors.New("Duplicate sensor alias found in configuration")
+		}
+	}
 
 	return &config, nil
 }
