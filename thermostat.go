@@ -140,8 +140,8 @@ func RunThermostat(path string, sc chan<- State, wg *sync.WaitGroup) {
 	if err != nil {
 		log.Panicln(err)
 	}
-	defer TurnOffSensors(*config)
 	defer rpio.Close()
+	defer TurnOffSensors(*config)
 
 	// Track if thermostats should run
 	run := true
