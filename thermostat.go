@@ -73,24 +73,30 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	duration := time.Since(state.Changed).Minutes()
 
 	switch {
-	case temp > sensor.HighTemp && temp < sensor.HighTemp:
+	case temp > sensor.HighTemp && temp < sensor.LowTemp:
 		log.Println("Invalid state! Temperature is too high AND too low!")
-	case temp > sensor.HighTemp && state.Heating:
+	// Temperature is high enough, turn off
+	case temp > sensor.LowTemp && state.Heating:
 		PinSwitch(hpin, false, sensor.HeatInvert)
 		state.Heating = false
 		state.Changed = time.Now()
+	// Temperature is too high and the cooling switch is still on, do nothing
 	case temp > sensor.HighTemp && state.Cooling:
 		break
+	// Temperature is too high and the duration has been long enough, start cooling
 	case temp > sensor.HighTemp && duration > sensor.CoolMinutes:
 		PinSwitch(cpin, true, sensor.CoolInvert)
 		state.Cooling = true
 		state.Changed = time.Now()
-	case temp < sensor.LowTemp && state.Cooling:
+	// Temperature is low enough, stop cooling
+	case temp < sensor.HighTemp && state.Cooling:
 		PinSwitch(cpin, false, sensor.CoolInvert)
 		state.Cooling = false
 		state.Changed = time.Now()
+	// Temperature is too low and the heating switch is on, do nothing
 	case temp < sensor.LowTemp && state.Heating:
 		break
+	// Temperature is too low and the duration has been long enough, start heating
 	case temp < sensor.LowTemp && duration > sensor.HeatMinutes:
 		PinSwitch(hpin, true, sensor.HeatInvert)
 		state.Heating = true
