@@ -8,17 +8,17 @@ import (
 
 // Sensor defines configuration for a temperature sensor.
 type Sensor struct {
-	ID          string  `yaml:"id"`
-	Alias       string  `yaml:"alias"`
-	HighTemp    float64 `yaml:"hightemp"`
-	LowTemp     float64 `yaml:"lowtemp"`
-	HeatGPIO    int32   `yaml:"heatgpio"`
-	HeatInvert  bool    `yaml:"heatinvert"`
-	HeatMinutes float64 `yaml:"heatminutes"`
-	CoolGPIO    int32   `yaml:"coolgpio"`
-	CoolInvert  bool    `yaml:"coolinvert"`
-	CoolMinutes float64 `yaml:"coolminutes"`
-	Verbose     bool    `yaml:"verbose"`
+	ID          string  `json:"id"          yaml:"id"`
+	Alias       string  `json:"alias"       yaml:"alias"`
+	HighTemp    float64 `json:"hightemp"    yaml:"hightemp"`
+	LowTemp     float64 `json:"lowtemp"     yaml:"lowtemp"`
+	HeatGPIO    int32   `json:"heatgpio"    yaml:"heatgpio"`
+	HeatInvert  bool    `json:"heatinvert"  yaml:"heatinvert"`
+	HeatMinutes float64 `json:"heatminutes" yaml:"heatminutes"`
+	CoolGPIO    int32   `json:"coolgpio"    yaml:"coolgpio"`
+	CoolInvert  bool    `json:"coolinvert"  yaml:"coolinvert"`
+	CoolMinutes float64 `json:"coolminutes" yaml:"coolminutes"`
+	Verbose     bool    `json:"verbose"     yaml:"verbose"`
 }
 
 // Config contains the applications configuration

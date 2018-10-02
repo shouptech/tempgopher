@@ -30,7 +30,7 @@ func main() {
 
 	// Launch the web frontend
 	wg.Add(1)
-	RunWeb(sc, &wg)
+	RunWeb(args.ConfigFile, sc, &wg)
 
 	// Wait for all threads to stop
 	wg.Wait()

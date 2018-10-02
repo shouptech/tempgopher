@@ -18,15 +18,37 @@ func PingHandler(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
 }
 
+// ConfigHandler responds to get requests with the current configuration
+func ConfigHandler(config *Config) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		if c.Param("alias") != "/" && c.Param("alias") != "" {
+			alias := c.Param("alias")[1:]
+			found := false
+			for _, v := range config.Sensors {
+				if v.ID == alias {
+					c.JSON(http.StatusOK, v)
+					found = true
+				}
+			}
+			if !found {
+				c.String(http.StatusNotFound, "Not found")
+			}
+		} else {
+			c.JSON(http.StatusOK, *config)
+		}
+	}
+	return gin.HandlerFunc(fn)
+}
+
 // StatusHandler responds to get requests with the current status of a sensor
 func StatusHandler(states *map[string]State) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
-		if c.Param("alias") == "/" {
+		if c.Param("alias") == "/" || c.Param("alias") == "" {
 			c.JSON(http.StatusOK, states)
 		} else if val, ok := (*states)[c.Param("alias")[1:]]; ok {
 			c.JSON(http.StatusOK, val)
 		} else {
-			c.JSON(http.StatusNotFound, "Not found")
+			c.String(http.StatusNotFound, "Not found")
 		}
 	}
 
@@ -34,7 +56,7 @@ func StatusHandler(states *map[string]State) gin.HandlerFunc {
 }
 
 // SetupRouter initializes the gin router.
-func SetupRouter(states *map[string]State) *gin.Engine {
+func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	r := gin.Default()
 
 	gin.SetMode(gin.ReleaseMode)
@@ -43,13 +65,18 @@ func SetupRouter(states *map[string]State) *gin.Engine {
 	r.GET("/ping", PingHandler)
 
 	// Status
+	r.GET("/api/status", StatusHandler(states))
 	r.GET("/api/status/*alias", StatusHandler(states))
+
+	// Config
+	r.GET("/api/config", ConfigHandler(config))
+	r.GET("/api/config/*alias", ConfigHandler(config))
 
 	return r
 }
 
 // RunWeb launches a web server. sc is used to update the states from the Thermostats.
-func RunWeb(sc <-chan State, wg *sync.WaitGroup) {
+func RunWeb(configpath string, sc <-chan State, wg *sync.WaitGroup) {
 	// Update sensor states when a new state comes back from the thermostat.
 	states := make(map[string]State)
 	go func() {
@@ -59,8 +86,24 @@ func RunWeb(sc <-chan State, wg *sync.WaitGroup) {
 		}
 	}()
 
+	config, err := LoadConfig(configpath)
+	if err != nil {
+		log.Panicln(err)
+	}
+	hup := make(chan os.Signal)
+	signal.Notify(hup, os.Interrupt, syscall.SIGHUP)
+	go func() {
+		for {
+			<-hup
+			config, err = LoadConfig(configpath)
+			if err != nil {
+				log.Panicln(err)
+			}
+		}
+	}()
+
 	// Launch the web server
-	r := SetupRouter(&states)
+	r := SetupRouter(config, &states)
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: r,
