@@ -79,10 +79,15 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	case temp > sensor.LowTemp && state.Heating:
 		PinSwitch(hpin, false, sensor.HeatInvert)
 		state.Heating = false
-		state.Changed = time.Now()
+		state.Changed = time.Unix(1<<63-62135596801, 999999999)
 	// Temperature is too high and the cooling switch is still on, do nothing
 	case temp > sensor.HighTemp && state.Cooling:
 		break
+	// Temperature is too high, but duration hasn't been met
+	case temp > sensor.HighTemp:
+		if state.Changed.After(time.Now()) {
+			state.Changed = time.Now()
+		}
 	// Temperature is too high and the duration has been long enough, start cooling
 	case temp > sensor.HighTemp && duration > sensor.CoolMinutes:
 		PinSwitch(cpin, true, sensor.CoolInvert)
@@ -92,10 +97,15 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	case temp < sensor.HighTemp && state.Cooling:
 		PinSwitch(cpin, false, sensor.CoolInvert)
 		state.Cooling = false
-		state.Changed = time.Now()
+		state.Changed = time.Unix(1<<63-62135596801, 999999999)
 	// Temperature is too low and the heating switch is on, do nothing
 	case temp < sensor.LowTemp && state.Heating:
 		break
+	// Temperature is too low, but duration hasn't been met
+	case temp < sensor.LowTemp:
+		if state.Changed.After(time.Now()) {
+			state.Changed = time.Now()
+		}
 	// Temperature is too low and the duration has been long enough, start heating
 	case temp < sensor.LowTemp && duration > sensor.HeatMinutes:
 		PinSwitch(hpin, true, sensor.HeatInvert)
