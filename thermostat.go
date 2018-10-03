@@ -77,7 +77,7 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	// When things reach the right temperature, set the duration to the future
 	// TODO: Better handling of this. Changed should maintain when the state changed.
 	//       Probably need a new flag in the State struct.
-	future := time.Now().AddDate(10, 0, 0)
+	future := time.Date(2999, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	switch {
 	case temp > sensor.HighTemp && temp < sensor.LowTemp:
