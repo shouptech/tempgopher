@@ -56,3 +56,46 @@ nohup ./temp-gopher -c config.yml run &
 ```
 
 Or use `systemctl` or some other process supervisor to run it.
+
+## REST API
+
+There is a very simple REST API for viewing the current configuration and status. The application launches and binds to `:8080`.
+
+To view the current status, query `http://<pi>:8080/api/status`:
+
+```
+$ curl -s http://localhost:8080/api/status | jq .
+{
+  "fermenter": {
+    "alias": "fermenter",
+    "temp": 19.812,
+    "cooling": false,
+    "heating": false,
+    "reading": "2018-10-03T08:43:05.795870992-06:00",
+    "changed": "2999-01-01T00:00:00Z"
+  }
+}
+```
+
+To view the current configuration, query `http://<pi>:8080/api/config`:
+
+```
+$ curl -s http://localhost:8080/api/config | jq .
+{
+  "Sensors": [
+    {
+      "id": "28-000008083108",
+      "alias": "fermenter",
+      "hightemp": 30,
+      "lowtemp": 27,
+      "heatgpio": 13,
+      "heatinvert": false,
+      "heatminutes": 1,
+      "coolgpio": 19,
+      "coolinvert": false,
+      "coolminutes": 4,
+      "verbose": false
+    }
+  ]
+}
+```
