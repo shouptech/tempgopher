@@ -7,6 +7,9 @@ import (
 	"github.com/stianeikeland/go-rpio"
 )
 
+// Version is the current code version of tempgopher
+const Version = "0.1.0-dev"
+
 func main() {
 	var args struct {
 		Action     string `arg:"required,positional" help:"run"`

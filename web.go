@@ -11,13 +11,9 @@ import (
 	"syscall"
 	"time"
 
-<<<<<<< HEAD
-=======
-	"github.com/gobuffalo/packr"
-
->>>>>>> html
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gobuffalo/packr"
 )
 
 // PingHandler responds to get requests with the message "pong".
@@ -77,6 +73,14 @@ func JSConfigHandler(config *Config) gin.HandlerFunc {
 	return gin.HandlerFunc(fn)
 }
 
+// VersionHandler responds to GET requests with the current version of tempgopher
+func VersionHandler(c *gin.Context) {
+	type version struct {
+		Version string `json:"version"`
+	}
+	c.JSON(http.StatusOK, version{Version: Version})
+}
+
 // SetupRouter initializes the gin router.
 func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	// If not specified, put gin in release mode
@@ -101,6 +105,9 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	// Status
 	r.GET("/api/status", StatusHandler(states))
 	r.GET("/api/status/*alias", StatusHandler(states))
+
+	// API Version
+	r.GET("/api/version", VersionHandler)
 
 	// Config
 	r.GET("/api/config", ConfigHandler(config))
