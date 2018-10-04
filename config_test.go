@@ -21,7 +21,10 @@ func Test_LoadConfig(t *testing.T) {
 		Verbose:     true,
 	}
 
-	testConfig := Config{Sensors: []Sensor{testSensor}}
+	testConfig := Config{
+		Sensors: []Sensor{testSensor},
+		BaseURL: "https://foo.bar",
+	}
 
 	loadedConfig, err := LoadConfig("tests/test_config.yml")
 	assert.Equal(t, nil, err)

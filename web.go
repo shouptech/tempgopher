@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,7 +19,7 @@ func PingHandler(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
 }
 
-// ConfigHandler responds to get requests with the current configuration
+// ConfigHandler responds to get requests with the current configuration.
 func ConfigHandler(config *Config) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		if c.Param("alias") != "/" && c.Param("alias") != "" {
@@ -57,9 +58,21 @@ func StatusHandler(states *map[string]State) gin.HandlerFunc {
 
 // SetupRouter initializes the gin router.
 func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
+	// If not specified, put gin in release mode
+	if _, ok := os.LookupEnv("GIN_MODE"); !ok {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 
-	gin.SetMode(gin.ReleaseMode)
+	// Midleware
+	r.Use(gin.Recovery())
+	if gin.Mode() != "release" {
+		r.Use(cors.Default())
+	} else {
+		corsconf := cors.DefaultConfig()
+		corsconf.AllowOrigins = []string{config.BaseURL}
+		r.Use(cors.New(corsconf))
+	}
 
 	// Ping
 	r.GET("/ping", PingHandler)

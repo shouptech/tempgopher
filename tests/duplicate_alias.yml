@@ -21,3 +21,4 @@ sensors:
   coolinvert: false
   coolminutes: 10
   verbose: true
+baseurl: https://foo.bar
