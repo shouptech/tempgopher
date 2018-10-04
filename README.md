@@ -17,10 +17,10 @@ You can build on a Raspberry Pi, however, it can take a long time! I recommend b
 
 ```
 go get -u github.com/gobuffalo/packr/...
-go get gitea.shoup.io/mike/temp-gopher
-cd $GOPATH/src/gitea.shoup.io/mike/temp-gopher
+go get gitea.shoup.io/mike/tempgopher
+cd $GOPATH/src/gitea.shoup.io/mike/tempgopher
 GOOS=linux GOARCH=arm GOARM=6 packr build -a -ldflags '-w -s -extldflags "-static"'
-scp temp-gopher <raspberrypi>:~/somepath
+scp tempgopher <raspberrypi>:~/somepath
 ```
 
 ## Configuration
@@ -49,13 +49,13 @@ sensors:
 You can run it directly in the comment line like:
 
 ```
-./temp-gopher -c config.yml run
+./tempgopher -c config.yml run
 ```
 
 You can run it in the background using `nohup`:
 
 ```
-nohup ./temp-gopher -c config.yml run &
+nohup ./tempgopher -c config.yml run &
 ```
 
 Or use `systemctl` or some other process supervisor to run it.

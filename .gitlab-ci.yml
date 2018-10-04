@@ -1,0 +1,36 @@
+image: golang:1.11
+
+variables:
+  binary_name: tempgopher
+  project_prefix: gitlab.com/shouptech
+  project_path: $project_prefix/tempgopher
+
+
+stages:
+- test
+- build
+
+before_script:
+- mkdir -p ${GOPATH}/src/${project_prefix}
+- cp -r ${CI_PROJECT_DIR} ${GOPATH}/src/${project_path}
+- cd ${GOPATH}/src/${project_path}
+- go get -v ./...
+
+test:
+  stage: test
+  variables:
+    GIN_MODE: debug
+  script:
+  - go get -v -t ./...
+  - go test -v
+
+build:
+  stage: build
+  variables:
+    build_binary: $CI_PROJECT_DIR/${binary_name}
+  script:
+  - go get -v github.com/gobuffalo/packr/...
+  - GOOS=linux GOARCH=arm GOARM=6 packr build -v -a -ldflags '-s -w -extldflags "-static"' -o ${build_binary}
+  artifacts:
+    paths:
+    - tempgopher
