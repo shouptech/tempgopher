@@ -24,9 +24,10 @@ type Sensor struct {
 
 // Config contains the applications configuration
 type Config struct {
-	Sensors    []Sensor `yaml:"sensors"`
-	BaseURL    string   `yaml:"baseurl"`
-	ListenAddr string   `yaml:"listenaddr"`
+	Sensors           []Sensor `yaml:"sensors"`
+	BaseURL           string   `yaml:"baseurl"`
+	ListenAddr        string   `yaml:"listenaddr"`
+	DisplayFahrenheit bool     `yaml:"displayfahrenheit"`
 }
 
 // LoadConfig will loads a file and parses it into a Config struct

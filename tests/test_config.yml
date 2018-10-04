@@ -12,3 +12,4 @@ sensors:
   verbose: true
 baseurl: https://foo.bar
 listenaddr: 127.0.0.1:8080
+displayfahrenheit: true

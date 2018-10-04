@@ -6,10 +6,16 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
 
+<<<<<<< HEAD
+=======
+	"github.com/gobuffalo/packr"
+
+>>>>>>> html
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +32,7 @@ func ConfigHandler(config *Config) gin.HandlerFunc {
 			alias := c.Param("alias")[1:]
 			found := false
 			for _, v := range config.Sensors {
-				if v.ID == alias {
+				if v.Alias == alias {
 					c.JSON(http.StatusOK, v)
 					found = true
 				}
@@ -51,6 +57,21 @@ func StatusHandler(states *map[string]State) gin.HandlerFunc {
 		} else {
 			c.String(http.StatusNotFound, "Not found")
 		}
+	}
+
+	return gin.HandlerFunc(fn)
+}
+
+// GetBox returns a packr.Box object representing the static files.
+func GetBox() packr.Box {
+	return packr.NewBox("./html")
+}
+
+// JSConfigHandler responds to get requests with the current configuration for the JS app
+func JSConfigHandler(config *Config) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		jsconfig := "var jsconfig={baseurl:\"" + config.BaseURL + "\",fahrenheit:" + strconv.FormatBool(config.DisplayFahrenheit) + "};"
+		c.String(http.StatusOK, jsconfig)
 	}
 
 	return gin.HandlerFunc(fn)
@@ -84,6 +105,15 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	// Config
 	r.GET("/api/config", ConfigHandler(config))
 	r.GET("/api/config/*alias", ConfigHandler(config))
+
+	// App
+	r.GET("/jsconfig.js", JSConfigHandler(config))
+	r.StaticFS("/app", GetBox())
+
+	// Redirect / to /app
+	r.Any("/", func(c *gin.Context) {
+		c.Redirect(301, config.BaseURL+"/app/")
+	})
 
 	return r
 }

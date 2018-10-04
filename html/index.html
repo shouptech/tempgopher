@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Temp Gopher</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    <script src="js/jquery.min.js"></script>
+    <!--
+        TODO: Fix this. I don't like service /jsconfig.js out of the root.
+        This is a work-around due to the way HttpRouter handles wildcard routes.
+    -->
+    <script src="/jsconfig.js"></script>
+    <script src="js/thermostat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="row" style="margin-top: 5%">
+            <h3>Thermostats</h3>
+        </div>
+    </div>
+    <div class="container" id="thermostats"></div>
+</body>
+</html>
