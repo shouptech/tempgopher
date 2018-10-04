@@ -118,7 +118,7 @@ func RunWeb(configpath string, sc <-chan State, wg *sync.WaitGroup) {
 	// Launch the web server
 	r := SetupRouter(config, &states)
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    config.ListenAddr,
 		Handler: r,
 	}
 

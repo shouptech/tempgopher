@@ -22,3 +22,4 @@ sensors:
   coolminutes: 10
   verbose: true
 baseurl: https://foo.bar
+listenaddr: 127.0.0.1:8080

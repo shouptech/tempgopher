@@ -22,8 +22,9 @@ func Test_LoadConfig(t *testing.T) {
 	}
 
 	testConfig := Config{
-		Sensors: []Sensor{testSensor},
-		BaseURL: "https://foo.bar",
+		Sensors:    []Sensor{testSensor},
+		BaseURL:    "https://foo.bar",
+		ListenAddr: "127.0.0.1:8080",
 	}
 
 	loadedConfig, err := LoadConfig("tests/test_config.yml")

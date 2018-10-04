@@ -27,6 +27,7 @@ scp temp-gopher <raspberrypi>:~/somepath
 Create a `config.yml` file like this:
 
 ```
+listenaddr: ":8080" # Address:port to listen on. If not specified, defaults to ":8080"
 baseurl: http://<pihostname>:8080 # Base URL to find the app at. Usually your Pi's IP address or hostname, unless using a reverse proxy
 sensors:
 - id: 28-000008083108 # Id of the DS18b120 sensor

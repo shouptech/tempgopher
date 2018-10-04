@@ -24,8 +24,9 @@ type Sensor struct {
 
 // Config contains the applications configuration
 type Config struct {
-	Sensors []Sensor `yaml:"sensors"`
-	BaseURL string   `yaml:"baseurl"`
+	Sensors    []Sensor `yaml:"sensors"`
+	BaseURL    string   `yaml:"baseurl"`
+	ListenAddr string   `yaml:"listenaddr"`
 }
 
 // LoadConfig will loads a file and parses it into a Config struct
@@ -38,6 +39,12 @@ func LoadConfig(path string) (*Config, error) {
 	var config Config
 	yaml.Unmarshal(data, &config)
 
+	// Set a default listen address if not define.
+	if config.ListenAddr == "" {
+		config.ListenAddr = ":8080"
+	}
+
+	// Check for Duplicates
 	ids := make(map[string]bool)
 	aliases := make(map[string]bool)
 	for _, v := range config.Sensors {
