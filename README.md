@@ -16,9 +16,10 @@ You will need a computer (e.g., Raspberry Pi) with the following components:
 You can build on a Raspberry Pi, however, it can take a long time! I recommend building on a separate computer with a bit more processing power.
 
 ```
+go get -u github.com/gobuffalo/packr/...
 go get gitea.shoup.io/mike/temp-gopher
 cd $GOPATH/src/gitea.shoup.io/mike/temp-gopher
-GOOS=linux GOARCH=arm GOARM=6 go build -a -ldflags '-w -s -extldflags "-static"'
+GOOS=linux GOARCH=arm GOARM=6 packr build -a -ldflags '-w -s -extldflags "-static"'
 scp temp-gopher <raspberrypi>:~/somepath
 ```
 
