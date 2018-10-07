@@ -1,5 +1,11 @@
 # TempGopher Changelog
 
+## 0.1.1
+
+Release: 2018-10-07
+
+* Changes temperature logic. See #8. Fixes a situation where temperature 'floats' at the threshold and the switch is rapidly cycled.
+
 ## 0.1.0
 
 Released: 2018-10-04
