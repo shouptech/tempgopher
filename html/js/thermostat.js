@@ -49,8 +49,8 @@ function renderThermostats() {
                     var hightemp = parseFloat(configData.hightemp).toFixed(1) + "°C";
                     var lowtemp = parseFloat(configData.lowtemp).toFixed(1) + "°C";
                 }
-                configText = "Chills when > " + hightemp + " for " + configData.coolminutes + " minutes.<br />";
-                configText += "Heats when < " + lowtemp + " for " + configData.heatminutes + " minutes.";
+                configText = "Chills for " + configData.coolminutes + " minutes when > " + hightemp + ".<br />";
+                configText += "Heats for " + configData.heatminutes + " minutes when < " + lowtemp + ".";
 
                 var configp = $("<p></p>").html(configText);
                 var configdiv = $("<div></div>").addClass("seven columns").append(configp);
