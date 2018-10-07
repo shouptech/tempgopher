@@ -38,9 +38,9 @@ function renderThermostats() {
             var statusdiv = $("<div></div>").addClass("three columns").append(statusp);
             rowdiv.append(statusdiv);
 
-            // Display config
+            // Display sensor config
             $.ajax({
-                url: jsconfig.baseurl + "/api/config/" + data[key].alias
+                url: jsconfig.baseurl + "/api/config/sensors/" + data[key].alias
             }).then(function(configData){
                 if (jsconfig.fahrenheit) {
                     var hightemp = celsiusToFahrenheit(parseFloat(configData.hightemp)).toFixed(1) + "°F";

@@ -3,6 +3,9 @@ package main
 import (
 	"errors"
 	"io/ioutil"
+	"log"
+	"os"
+	"syscall"
 
 	"gopkg.in/yaml.v2"
 )
@@ -30,6 +33,64 @@ type Config struct {
 	DisplayFahrenheit bool     `yaml:"displayfahrenheit"`
 }
 
+var configFilePath string
+
+// UpdateSensorConfig updates the configuration of an individual sensor and writes to disk
+func UpdateSensorConfig(s Sensor) error {
+	config, err := LoadConfig(configFilePath)
+	if err != nil {
+		return err
+	}
+
+	for i := range config.Sensors {
+		if config.Sensors[i].ID == s.ID {
+			config.Sensors[i].Alias = s.Alias
+			config.Sensors[i].HighTemp = s.HighTemp
+			config.Sensors[i].LowTemp = s.LowTemp
+			config.Sensors[i].HeatGPIO = s.HeatGPIO
+			config.Sensors[i].HeatInvert = s.HeatInvert
+			config.Sensors[i].HeatMinutes = s.HeatMinutes
+			config.Sensors[i].CoolGPIO = s.CoolGPIO
+			config.Sensors[i].CoolInvert = s.CoolInvert
+			config.Sensors[i].CoolMinutes = s.CoolMinutes
+			config.Sensors[i].Verbose = s.Verbose
+			log.Println(config.Sensors[i])
+		}
+	}
+
+	if err = SaveConfig(configFilePath, *config); err != nil {
+		return err
+	}
+
+	log.Println(config.Sensors[0])
+
+	if err = SignalReload(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SignalReload sends a SIGHUP to the process, initiating a configuration reload
+func SignalReload() error {
+	p := os.Process{Pid: os.Getpid()}
+	return p.Signal(syscall.SIGHUP)
+}
+
+// SaveConfig will write a new configuration file
+func SaveConfig(path string, config Config) error {
+	d, err := yaml.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	if err = ioutil.WriteFile(path, d, 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // LoadConfig will loads a file and parses it into a Config struct
 func LoadConfig(path string) (*Config, error) {
 	data, err := ioutil.ReadFile(path)
@@ -37,6 +98,7 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
+	configFilePath = path
 	var config Config
 	yaml.Unmarshal(data, &config)
 

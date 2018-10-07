@@ -14,14 +14,15 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gobuffalo/packr"
+	"github.com/jinzhu/copier"
 )
 
-// PingHandler responds to get requests with the message "pong".
+// PingHandler responds to GET requests with the message "pong".
 func PingHandler(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
 }
 
-// ConfigHandler responds to get requests with the current configuration.
+// ConfigHandler responds to GET requests with the current configuration.
 func ConfigHandler(config *Config) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		if c.Param("alias") != "/" && c.Param("alias") != "" {
@@ -34,16 +35,37 @@ func ConfigHandler(config *Config) gin.HandlerFunc {
 				}
 			}
 			if !found {
-				c.String(http.StatusNotFound, "Not found")
+				c.JSON(http.StatusNotFound, gin.H{"error": "Not Found"})
 			}
+		} else if c.Param("alias") == "/" {
+			c.JSON(http.StatusOK, config.Sensors)
 		} else {
-			c.JSON(http.StatusOK, *config)
+			c.JSON(http.StatusOK, config)
 		}
 	}
 	return gin.HandlerFunc(fn)
 }
 
-// StatusHandler responds to get requests with the current status of a sensor
+// UpdateSensorsHandler responds to POST requests by updating the stored configuration and issuing a reload to the app
+func UpdateSensorsHandler(c *gin.Context) {
+	var sensors []Sensor
+
+	if err := c.ShouldBindJSON(&sensors); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, s := range sensors {
+		if err := UpdateSensorConfig(s); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "updated"})
+}
+
+// StatusHandler responds to GET requests with the current status of a sensor
 func StatusHandler(states *map[string]State) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		if c.Param("alias") == "/" || c.Param("alias") == "" {
@@ -63,7 +85,7 @@ func GetBox() packr.Box {
 	return packr.NewBox("./html")
 }
 
-// JSConfigHandler responds to get requests with the current configuration for the JS app
+// JSConfigHandler responds to GET requests with the current configuration for the JS app
 func JSConfigHandler(config *Config) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		jsconfig := "var jsconfig={baseurl:\"" + config.BaseURL + "\",fahrenheit:" + strconv.FormatBool(config.DisplayFahrenheit) + "};"
@@ -111,7 +133,8 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 
 	// Config
 	r.GET("/api/config", ConfigHandler(config))
-	r.GET("/api/config/*alias", ConfigHandler(config))
+	r.GET("/api/config/sensors/*alias", ConfigHandler(config))
+	r.POST("/api/config/sensors", UpdateSensorsHandler)
 
 	// App
 	r.GET("/jsconfig.js", JSConfigHandler(config))
@@ -123,6 +146,18 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	})
 
 	return r
+}
+
+// reloadWebConfig reloads the current copy of configuration
+func reloadWebConfig(c *Config, p string) error {
+	nc, err := LoadConfig(p)
+	if err != nil {
+		return err
+	}
+
+	copier.Copy(&c, &nc)
+
+	return nil
 }
 
 // RunWeb launches a web server. sc is used to update the states from the Thermostats.
@@ -145,7 +180,7 @@ func RunWeb(configpath string, sc <-chan State, wg *sync.WaitGroup) {
 	go func() {
 		for {
 			<-hup
-			config, err = LoadConfig(configpath)
+			err = reloadWebConfig(config, configpath)
 			if err != nil {
 				log.Panicln(err)
 			}
