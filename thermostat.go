@@ -63,6 +63,11 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 		log.Panicln(err)
 	}
 
+	// When things reach the right temperature, set the duration to the future
+	// TODO: Better handling of this. Changed should maintain when the state changed.
+	//       Probably need a new flag in the State struct.
+	future := time.Date(2999, 1, 1, 0, 0, 0, 0, time.UTC)
+
 	state.When = time.Now()
 
 	// Initialize the pins
@@ -74,45 +79,38 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	// Calculate duration
 	duration := time.Since(state.Changed).Minutes()
 
-	// When things reach the right temperature, set the duration to the future
-	// TODO: Better handling of this. Changed should maintain when the state changed.
-	//       Probably need a new flag in the State struct.
-	future := time.Date(2999, 1, 1, 0, 0, 0, 0, time.UTC)
-
 	switch {
 	case temp > sensor.HighTemp && temp < sensor.LowTemp:
 		log.Println("Invalid state! Temperature is too high AND too low!")
-	// Temperature is high enough, turn off
-	case temp > sensor.LowTemp && state.Heating:
-		PinSwitch(hpin, false, sensor.HeatInvert)
-		state.Heating = false
-		state.Changed = future
-	// Temperature is too high and the cooling switch is still on, do nothing
-	case temp > sensor.HighTemp && state.Cooling:
-		break
-	// Temperature is too high, but duration hasn't been counted
-	case temp > sensor.HighTemp && duration < 0:
-		state.Changed = time.Now()
-	// Temperature is too high and the duration has been long enough, start cooling
-	case temp > sensor.HighTemp && duration > sensor.CoolMinutes:
+	// Temperature too high, start cooling
+	case temp > sensor.HighTemp:
 		PinSwitch(cpin, true, sensor.CoolInvert)
 		state.Cooling = true
-		state.Changed = time.Now()
-	// Temperature is low enough, stop cooling
-	case temp < sensor.HighTemp && state.Cooling:
+		PinSwitch(hpin, false, sensor.HeatInvert) // Ensure the heater is off
+		state.Heating = false
+		state.Changed = future
+	// Temperature too low, start heating
+	case temp < sensor.LowTemp:
+		PinSwitch(hpin, true, sensor.HeatInvert)
+		state.Heating = true
+		PinSwitch(cpin, false, sensor.CoolInvert) // Ensure the chiller is off
+		state.Cooling = false
+		state.Changed = future
+	// Temperature is good and cooling has been happening long enough
+	case temp < sensor.HighTemp && state.Cooling && duration > sensor.CoolMinutes:
 		PinSwitch(cpin, false, sensor.CoolInvert)
 		state.Cooling = false
 		state.Changed = future
-	// Temperature is too low and the heating switch is on, do nothing
-	case temp < sensor.LowTemp && state.Heating:
-		break
-	// Temperature is too low, but duration hasn't been counted
-	case temp < sensor.LowTemp && duration < 0:
+	// Temperature is good and heating has been happening long enough
+	case temp > sensor.LowTemp && state.Heating && duration > sensor.HeatMinutes:
+		PinSwitch(hpin, false, sensor.HeatInvert)
+		state.Heating = false
+		state.Changed = future
+	// Temperature just crossed high threshold
+	case temp < sensor.HighTemp && state.Cooling && duration < 0:
 		state.Changed = time.Now()
-	// Temperature is too low and the duration has been long enough, start heating
-	case temp < sensor.LowTemp && duration > sensor.HeatMinutes:
-		PinSwitch(hpin, true, sensor.HeatInvert)
-		state.Heating = true
+	// Temperature just crossed low threshold
+	case temp > sensor.LowTemp && state.Heating && duration < 0:
 		state.Changed = time.Now()
 	default:
 		break
