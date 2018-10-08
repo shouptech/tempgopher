@@ -35,7 +35,7 @@ function renderThermostats() {
                 var statustext = "Idle"
             }
             var statusp = $("<p></p>").html(statustext);
-            var statusdiv = $("<div></div>").addClass("three columns").append(statusp);
+            var statusdiv = $("<div></div>").addClass("two columns").append(statusp);
             rowdiv.append(statusdiv);
 
             // Display sensor config
@@ -43,23 +43,37 @@ function renderThermostats() {
                 url: jsconfig.baseurl + "/api/config/sensors/" + data[key].alias
             }).then(function(configData){
                 if (jsconfig.fahrenheit) {
-                    var hightemp = celsiusToFahrenheit(parseFloat(configData.hightemp)).toFixed(1) + "°F";
-                    var lowtemp = celsiusToFahrenheit(parseFloat(configData.lowtemp)).toFixed(1) + "°F";
+                    var degUnit = "°F";
+                    var hightemp = celsiusToFahrenheit(parseFloat(configData.hightemp)).toFixed(1);
+                    var lowtemp = celsiusToFahrenheit(parseFloat(configData.lowtemp)).toFixed(1);
                 } else {
-                    var hightemp = parseFloat(configData.hightemp).toFixed(1) + "°C";
-                    var lowtemp = parseFloat(configData.lowtemp).toFixed(1) + "°C";
+                    var hightemp = parseFloat(configData.hightemp).toFixed(1);
+                    var lowtemp = parseFloat(configData.lowtemp).toFixed(1);
                 }
-                configText = "Chills for " + configData.coolminutes + " minutes when > " + hightemp + ".<br />";
-                configText += "Heats for " + configData.heatminutes + " minutes when < " + lowtemp + ".";
+
+                rp = '[0-9]+(\.[0-9]+)?'
+
+                configText = "Chills for " +
+                    "<input id=\"cm" + configData.alias + "\" value=\"" + configData.coolminutes + "\" size=\"2\" pattern=\"" + rp +"\"> minutes when &gt; " +
+                    "<input id=\"ht" + configData.alias + "\" value=\"" + hightemp + "\" size=\"4\" pattern=\"" + rp +"\">" + degUnit + ".<br />";
+
+                configText += "Heats for " +
+                    "<input id=\"hm" + configData.alias + "\" value=\"" + configData.heatminutes + "\" size=\"2\" pattern=\"" + rp +"\"> minutes when &lt; " +
+                    "<input id=\"lt" + configData.alias + "\" value=\"" + lowtemp + "\" size=\"4\" pattern=\"" + rp +"\">" + degUnit + ".<br />";
 
                 var configp = $("<p></p>").html(configText);
-                var configdiv = $("<div></div>").addClass("seven columns").append(configp);
+                var configdiv = $("<div></div>").addClass("five columns").append(configp);
                 rowdiv.append(configdiv);
+
+                var yesButton = $("<button></button>").attr("type", "submit").addClass("button button-primary").text("✔").css("margin-right", "5px");
+                var noButton = $("<button></button>").addClass("button").text("✘");
+                var buttonDiv = $("<div></div>").addClass("three columns").append(yesButton).append(noButton);
+                rowdiv.append(buttonDiv);
             });
 
             // Add things back to the thermostat list
             $("#thermostats").append(titlediv);
-            $("#thermostats").append(rowdiv);
+            $("#thermostats").append($("<form></form>").append(rowdiv));
         };
     });
 };
