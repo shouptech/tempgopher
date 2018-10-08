@@ -2,6 +2,10 @@ function celsiusToFahrenheit(degree) {
     return degree * 1.8 + 32;
 }
 
+function fahrenheitToCelsius(degree) {
+    return (degree - 32) * 5 / 9;
+}
+
 function renderThermostats() {
     $.ajax({
         url: jsconfig.baseurl + "/api/status/"
@@ -65,23 +69,32 @@ function renderThermostats() {
                 rowdiv.append(configdiv);
 
                 var yesButton = $("<button></button>").addClass("button button-primary").text("✔").css("margin-right", "5px").click(function() {
+                    if (jsconfig.fahrenheit) {
+                        var newHT = fahrenheitToCelsius(parseFloat(htIn.val()));
+                        var newLT = fahrenheitToCelsius(parseFloat(ltIn.val()));
+                    } else {
+                        var newHT = parseFloat(htIn.val());
+                        var newLT = parseFloat(ltIn.val());
+                    }
                     $.ajax({
                         type: "POST",
-                        url: jsconfig.baseurl + "/api/config/sensors/",
+                        url: jsconfig.baseurl + "/api/config/sensors",
                         data: JSON.stringify([{
                             "id": configData.id,
                             "alias": configData.alias,
-                            "hightemp": htIn.val(),
-                            "lowtemp": ltIn.val(),
+                            "hightemp": newHT,
+                            "lowtemp": newLT,
                             "heatgpio": configData.heatgpio,
                             "heatinvert": configData.heatInvert,
-                            "heatminutes": hmIn.val(),
+                            "heatminutes": parseFloat(hmIn.val()),
                             "coolgpio": configData.coolgpio,
                             "coolinvert": configData.coolinvert,
-                            "coolminutes": cmIn.val(),
+                            "coolminutes": parseFloat(cmIn.val()),
                             "verbose": configData.verbose
                         }])
                     })
+                    window.setInterval(renderThermostats, 60000);
+                    renderThermostats();
                 });
 
                 var noButton = $("<button></button>").addClass("button").text("✘").click(function() {
@@ -91,11 +104,11 @@ function renderThermostats() {
 
                 var buttonDiv = $("<div></div>").addClass("three columns").append(yesButton).append(noButton);
                 rowdiv.append(buttonDiv);
-                var confForm = $("<form></form>").append(rowdiv);
+                //var confForm = $("<form></form>").append(rowdiv);
 
                 // Add things back to the thermostat list
                 $("#thermostats").append(titlediv);
-                $("#thermostats").append(confForm);
+                $("#thermostats").append(rowdiv);
             });
         };
     });
