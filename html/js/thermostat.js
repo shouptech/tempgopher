@@ -2,6 +2,10 @@ function celsiusToFahrenheit(degree) {
     return degree * 1.8 + 32;
 }
 
+function fahrenheitToCelsius(degree) {
+    return (degree - 32) * 5 / 9;
+}
+
 function renderThermostats() {
     $.ajax({
         url: jsconfig.baseurl + "/api/status/"
@@ -35,7 +39,7 @@ function renderThermostats() {
                 var statustext = "Idle"
             }
             var statusp = $("<p></p>").html(statustext);
-            var statusdiv = $("<div></div>").addClass("three columns").append(statusp);
+            var statusdiv = $("<div></div>").addClass("two columns").append(statusp);
             rowdiv.append(statusdiv);
 
             // Display sensor config
@@ -43,23 +47,69 @@ function renderThermostats() {
                 url: jsconfig.baseurl + "/api/config/sensors/" + data[key].alias
             }).then(function(configData){
                 if (jsconfig.fahrenheit) {
-                    var hightemp = celsiusToFahrenheit(parseFloat(configData.hightemp)).toFixed(1) + "°F";
-                    var lowtemp = celsiusToFahrenheit(parseFloat(configData.lowtemp)).toFixed(1) + "°F";
+                    var degUnit = "°F";
+                    var hightemp = celsiusToFahrenheit(parseFloat(configData.hightemp)).toFixed(1);
+                    var lowtemp = celsiusToFahrenheit(parseFloat(configData.lowtemp)).toFixed(1);
                 } else {
-                    var hightemp = parseFloat(configData.hightemp).toFixed(1) + "°C";
-                    var lowtemp = parseFloat(configData.lowtemp).toFixed(1) + "°C";
+                    var hightemp = parseFloat(configData.hightemp).toFixed(1);
+                    var lowtemp = parseFloat(configData.lowtemp).toFixed(1);
                 }
-                configText = "Chills for " + configData.coolminutes + " minutes when > " + hightemp + ".<br />";
-                configText += "Heats for " + configData.heatminutes + " minutes when < " + lowtemp + ".";
 
-                var configp = $("<p></p>").html(configText);
-                var configdiv = $("<div></div>").addClass("seven columns").append(configp);
+                rp = '[0-9]+(\.[0-9]+)?'
+
+                var cmIn = $("<input>").attr("id", "cm" + configData.alias).val(configData.coolminutes).attr("size", "2").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
+                var htIn = $("<input>").attr("id", "ht" + configData.alias).val(hightemp).attr("size", "4").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
+                var hmIn = $("<input>").attr("id", "hm" + configData.alias).val(configData.heatminutes).attr("size", "2").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
+                var ltIn = $("<input>").attr("id", "lt" + configData.alias).val(lowtemp).attr("size", "4").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
+
+                var configp = $("<p></p>").text("Chills for ").append(cmIn).append(" minutes when &gt; ").append(htIn).append(degUnit).append($("<br>"));
+                configp.append("Heats for ").append(hmIn).append(" minutes when &lt; ").append(ltIn).append(degUnit);
+
+                var configdiv = $("<div></div>").addClass("five columns").append(configp);
                 rowdiv.append(configdiv);
-            });
 
-            // Add things back to the thermostat list
-            $("#thermostats").append(titlediv);
-            $("#thermostats").append(rowdiv);
+                var yesButton = $("<button></button>").addClass("button button-primary").text("✔").css("margin-right", "5px").click(function() {
+                    if (jsconfig.fahrenheit) {
+                        var newHT = fahrenheitToCelsius(parseFloat(htIn.val()));
+                        var newLT = fahrenheitToCelsius(parseFloat(ltIn.val()));
+                    } else {
+                        var newHT = parseFloat(htIn.val());
+                        var newLT = parseFloat(ltIn.val());
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: jsconfig.baseurl + "/api/config/sensors",
+                        data: JSON.stringify([{
+                            "id": configData.id,
+                            "alias": configData.alias,
+                            "hightemp": newHT,
+                            "lowtemp": newLT,
+                            "heatgpio": configData.heatgpio,
+                            "heatinvert": configData.heatInvert,
+                            "heatminutes": parseFloat(hmIn.val()),
+                            "coolgpio": configData.coolgpio,
+                            "coolinvert": configData.coolinvert,
+                            "coolminutes": parseFloat(cmIn.val()),
+                            "verbose": configData.verbose
+                        }])
+                    })
+                    window.setInterval(renderThermostats, 60000);
+                    renderThermostats();
+                });
+
+                var noButton = $("<button></button>").addClass("button").text("✘").click(function() {
+                    window.setInterval(renderThermostats, 60000);
+                    renderThermostats();
+                });
+
+                var buttonDiv = $("<div></div>").addClass("three columns").append(yesButton).append(noButton);
+                rowdiv.append(buttonDiv);
+                //var confForm = $("<form></form>").append(rowdiv);
+
+                // Add things back to the thermostat list
+                $("#thermostats").append(titlediv);
+                $("#thermostats").append(rowdiv);
+            });
         };
     });
 };
@@ -75,4 +125,4 @@ function renderVersion() {
 $(document).ready(renderVersion);
 
 $(document).ready(renderThermostats);
-setInterval(renderThermostats, 60000)
+var rtHandle = window.setInterval(renderThermostats, 60000);
