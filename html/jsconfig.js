@@ -1,4 +1,4 @@
 var jsconfig = {
-    baseurl: "http://foo.bar",
+    baseurl: "http://beerpi.home.shoup.io:8080",
     fahrenheit: true
 };
