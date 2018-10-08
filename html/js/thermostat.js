@@ -53,27 +53,32 @@ function renderThermostats() {
 
                 rp = '[0-9]+(\.[0-9]+)?'
 
-                configText = "Chills for " +
-                    "<input id=\"cm" + configData.alias + "\" value=\"" + configData.coolminutes + "\" size=\"2\" pattern=\"" + rp +"\"> minutes when &gt; " +
-                    "<input id=\"ht" + configData.alias + "\" value=\"" + hightemp + "\" size=\"4\" pattern=\"" + rp +"\">" + degUnit + ".<br />";
+                var cmIn = $("<input>").attr("id", "cm" + configData.alias).val(configData.coolminutes).attr("size", "2").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
+                var htIn = $("<input>").attr("id", "ht" + configData.alias).val(hightemp).attr("size", "4").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
+                var hmIn = $("<input>").attr("id", "hm" + configData.alias).val(configData.heatminutes).attr("size", "2").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
+                var ltIn = $("<input>").attr("id", "lt" + configData.alias).val(lowtemp).attr("size", "4").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
 
-                configText += "Heats for " +
-                    "<input id=\"hm" + configData.alias + "\" value=\"" + configData.heatminutes + "\" size=\"2\" pattern=\"" + rp +"\"> minutes when &lt; " +
-                    "<input id=\"lt" + configData.alias + "\" value=\"" + lowtemp + "\" size=\"4\" pattern=\"" + rp +"\">" + degUnit + ".<br />";
+                var configp = $("<p></p>").text("Chills for ").append(cmIn).append(" minutes when &gt; ").append(htIn).append(degUnit).append($("<br>"));
+                configp.append("Heats for ").append(hmIn).append(" minutes when &lt; ").append(ltIn).append(degUnit);
 
-                var configp = $("<p></p>").html(configText);
                 var configdiv = $("<div></div>").addClass("five columns").append(configp);
                 rowdiv.append(configdiv);
 
                 var yesButton = $("<button></button>").attr("type", "submit").addClass("button button-primary").text("✔").css("margin-right", "5px");
-                var noButton = $("<button></button>").addClass("button").text("✘");
+                var noButton = $("<button></button>").attr("id", "no" + configData.alias).addClass("button").text("✘");
                 var buttonDiv = $("<div></div>").addClass("three columns").append(yesButton).append(noButton);
                 rowdiv.append(buttonDiv);
-            });
 
-            // Add things back to the thermostat list
-            $("#thermostats").append(titlediv);
-            $("#thermostats").append($("<form></form>").append(rowdiv));
+                // Add things back to the thermostat list
+                $("#thermostats").append(titlediv);
+                $("#thermostats").append($("<form></form>").append(rowdiv));
+
+                // Re-engage reload, and re-render the thermostat on clear
+                $("#no" + configData.alias).click(function() {
+                    window.setInterval(renderThermostats, 60000);
+                    renderThermostats();
+                });
+            });
         };
     });
 };
@@ -89,4 +94,4 @@ function renderVersion() {
 $(document).ready(renderVersion);
 
 $(document).ready(renderThermostats);
-setInterval(renderThermostats, 60000)
+var rtHandle = window.setInterval(renderThermostats, 60000);
