@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/yryz/ds18b20"
 )
 
 // ReadInput reads the next line from a Reader. It will return 'def' if nothing
@@ -70,6 +72,90 @@ func PromptForConfiguration() Config {
 	config.DisplayFahrenheit, err = strconv.ParseBool(ReadInput(reader, "true"))
 	if err != nil {
 		panic(err)
+	}
+
+	// Configure sensors
+	sensors, err := ds18b20.Sensors()
+	if err != nil {
+		fmt.Println("Couldn't find any sensors. Did you enable the 1-wire bus?")
+		fmt.Printf("The error was: %s\n", err)
+		os.Exit(1)
+	}
+
+	for _, sensor := range sensors {
+		fmt.Printf("Configure sensor w/ ID: %s\n", sensor)
+		fmt.Print("[Y/n]: ")
+		choice := ReadInput(reader, "y")
+		if strings.ToLower(choice)[0] != 'y' {
+			continue
+		}
+
+		var s Sensor
+		s.ID = sensor
+
+		fmt.Print("Sensor alias: ")
+		s.Alias = ReadInput(reader, "")
+		if s.Alias == "" {
+			panic("Alias cannot be blank")
+		}
+
+		fmt.Print("High temperature: ")
+		s.HighTemp, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Cooling minutes: ")
+		s.CoolMinutes, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Cooling GPIO: ")
+		resp, err := strconv.ParseInt(ReadInput(reader, ""), 10, 32)
+		s.CoolGPIO = int32(resp)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Invert cooling switch [false]: ")
+		s.CoolInvert, err = strconv.ParseBool(ReadInput(reader, "false"))
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Low temperature: ")
+		s.LowTemp, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Heating minutes: ")
+		s.HeatMinutes, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Heating GPIO: ")
+		resp, err = strconv.ParseInt(ReadInput(reader, ""), 10, 32)
+		s.HeatGPIO = int32(resp)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Invert heating switch [false]: ")
+		s.HeatInvert, err = strconv.ParseBool(ReadInput(reader, "false"))
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Enable verbose logging [false]: ")
+		s.Verbose, err = strconv.ParseBool(ReadInput(reader, "false"))
+		if err != nil {
+			panic(err)
+		}
+
+		config.Sensors = append(config.Sensors, s)
 	}
 
 	return config
