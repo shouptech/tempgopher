@@ -12,13 +12,18 @@ const Version = "0.2.0-dev"
 
 func main() {
 	var args struct {
-		Action     string `arg:"required,positional" help:"run"`
+		Action     string `arg:"required,positional" help:"run config"`
 		ConfigFile string `arg:"-c,required" help:"path to config file"`
 	}
 
 	p := arg.MustParse(&args)
-	if args.Action != "run" {
-		p.Fail("ACTION must be run")
+	if args.Action != "run" && args.Action != "config" {
+		p.Fail("ACTION must be run or config")
+	}
+
+	if args.Action == "config" {
+		ConfigCLI(args.ConfigFile)
+		return
 	}
 
 	// Create a channel for receiving of state
