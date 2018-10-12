@@ -158,6 +158,38 @@ func PromptForConfiguration() Config {
 		config.Sensors = append(config.Sensors, s)
 	}
 
+	fmt.Println("Write data to an Influx database?")
+	fmt.Print("[Y/n]: ")
+	choice := ReadInput(reader, "y")
+	if strings.ToLower(choice)[0] == 'y' {
+		fmt.Print("Influx address [http://influx:8086]: ")
+		config.Influx.Addr = ReadInput(reader, "http://influx:8086")
+
+		fmt.Print("Influx Username []: ")
+		config.Influx.Username = ReadInput(reader, "")
+
+		fmt.Print("Influx Password []: ")
+		config.Influx.Password = ReadInput(reader, "")
+
+		fmt.Print("Influx UserAgent [InfluxDBClient]: ")
+		config.Influx.UserAgent = ReadInput(reader, "InfluxDBClient")
+
+		fmt.Print("Influx timeout (in seconds) [30]: ")
+		config.Influx.Timeout, err = strconv.ParseFloat(ReadInput(reader, "30"), 64)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Print("Influx database []: ")
+		config.Influx.Database = ReadInput(reader, "")
+
+		fmt.Print("Enable InsecureSkipVerify? [fasle]: ")
+		config.Influx.InsecureSkipVerify, err = strconv.ParseBool(ReadInput(reader, "false"))
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	return config
 }
 

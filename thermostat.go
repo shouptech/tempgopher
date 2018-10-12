@@ -216,6 +216,10 @@ func RunThermostat(path string, sc chan<- State, wg *sync.WaitGroup) {
 			default:
 				break
 			}
+
+			if config.Influx.Addr != "" {
+				go WriteStateToInflux(states[v.ID], config.Influx)
+			}
 		}
 	}
 
