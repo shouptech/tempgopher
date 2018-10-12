@@ -21,6 +21,8 @@ sensors:
   coolinvert: false
   coolminutes: 10
   verbose: true
+users:
+- foo: bar
 baseurl: https://foo.bar
 listenaddr: 127.0.0.1:8080
 displayfahrenheit: true

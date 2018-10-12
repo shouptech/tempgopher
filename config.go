@@ -36,9 +36,16 @@ type Sensor struct {
 	Verbose     bool    `json:"verbose"     yaml:"verbose"`
 }
 
+// User defines a user's configuration
+type User struct {
+	Name     string `json:"name" yaml:"name"`
+	Password string `json:"password" yaml:"password"`
+}
+
 // Config contains the applications configuration
 type Config struct {
 	Sensors           []Sensor `yaml:"sensors"`
+	Users             []User   `yaml:"users"`
 	BaseURL           string   `yaml:"baseurl"`
 	ListenAddr        string   `yaml:"listenaddr"`
 	DisplayFahrenheit bool     `yaml:"displayfahrenheit"`

@@ -40,6 +40,7 @@ func ConfigHandler(config *Config) gin.HandlerFunc {
 		} else if c.Param("alias") == "/" {
 			c.JSON(http.StatusOK, config.Sensors)
 		} else {
+			config.Users = nil // Never return the users in GET requests
 			c.JSON(http.StatusOK, config)
 		}
 	}
@@ -125,7 +126,7 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	r.GET("/ping", PingHandler)
 
 	// API Endpoints
-	api := r.Group("/api")
+	api := r.Group("/api", gin.BasicAuth(GetGinAccounts(config)))
 	{
 		api.GET("/status", StatusHandler(states))
 		api.GET("/status/*alias", StatusHandler(states))
@@ -157,6 +158,15 @@ func reloadWebConfig(c *Config, p string) error {
 	copier.Copy(&c, &nc)
 
 	return nil
+}
+
+// GetGinAccounts returns a gin.Accounts struct with values pulled from a Config struct
+func GetGinAccounts(config *Config) gin.Accounts {
+	var a gin.Accounts
+	for _, user := range config.Users {
+		a[user.Name] = user.Password
+	}
+	return a
 }
 
 // RunWeb launches a web server. sc is used to update the states from the Thermostats.
