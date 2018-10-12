@@ -1,104 +1,76 @@
-# Temp Gopher
+# TempGopher
 
-Temp Gopher is a thermostat application written in Go. It is written and tested using a Raspberry Pi, but any hardware platform meeting the requirements will probably work.
+TempGopher is a thermostat application written in Go. It turns a Raspberry Pi into a thermostat you can control with your web browser.
 
 ## Requirements
 
-You will need a computer (e.g., Raspberry Pi) with the following components:
+You will need a Raspberry Pi with the following components:
 
 * A network connection
 * DS18B120, 1-wire temperature sensors
 * GPIO pins
 * Relays for powering on/off your equipment hooked up to the GPIO pins
 
-## Installation
+## Install
 
-You can build on a Raspberry Pi, however, it can take a long time! I recommend building on a separate computer with a bit more processing power.
+You will need to setup your Raspberry Pi for this to work.
 
-```
-go get -u github.com/gobuffalo/packr/...
-go get gitea.shoup.io/mike/tempgopher
-cd $GOPATH/src/gitea.shoup.io/mike/tempgopher
-GOOS=linux GOARCH=arm GOARM=6 packr build -a -ldflags '-w -s -extldflags "-static"'
-scp tempgopher <raspberrypi>:~/somepath
-```
+1. Setup your DS18B20 temperature sensor. [Adafruit has a good tutorial for getting them working](https://learn.adafruit.com/adafruits-raspberry-pi-lesson-11-ds18b20-temperature-sensing/hardware)
+2. Connect your relay switches to the GPIO pins
+3. [Download the install.sh script to your Raspberry Pi](https://gitlab.com/shouptech/tempgopher/-/jobs/artifacts/master/raw/install.sh?job=build)
+4. Run the script! The script will download the latest binary and configure the thermostat with some initial values.
+5. After configuration, point your web browser to the configured URL.
 
-## Configuration
+## Configuration Script
 
-Create a `config.yml` file like this:
+You will be asked some questions during the initial configuration of TempGopher. You also see some defaults in brackets. If the brackets look good, just hit enter.
 
-```
-listenaddr: ":8080" # Address:port to listen on. If not specified, defaults to ":8080"
-baseurl: http://<pihostname>:8080 # Base URL to find the app at. Usually your Pi's IP address or hostname, unless using a reverse proxy
-sensors:
-- id: 28-000008083108 # Id of the DS18b120 sensor
-  alias: fermenter # An alias for the sensor
-  hightemp: 8 # Maximum temperature you want the sensor to read
-  lowtemp: 4 # Minimum tempearture you want the sensor to read
-  heatgpio: 5 # GPIO pin the heater is hooked into
-  heatinvert: false # Probably false. If true, will set pin to High to turn the heater off
-  heatminutes: 1 # Number of minutes below the minimum before the heater turns on
-  coolgpio: 17 # GPIO pin the cooler is hooked into
-  coolinvert: false # Probably false. If true, will set pin to High to turn the cooler off
-  coolminutes: 10 # Number of minutes below the minimum before the cooler turns on
-  verbose: false # If true, outputs the current status at every read, approx once per second
-```
+* `Listen address?` - The address & port TempGopher should listen on. Omitting the address and just specifying the port means it listens on all addresses. Default is `:8080`.
+* `Base URL?` - This is what you will type in to your web browser to access TempGopher. If you don't have DNS configured, should probably be `http://<ipaddress>:8080`
+* `Display temperature in fahrenheit?` - Set to true if you want fahrenheit, otherwise defaults to celsius.
+* `Configure sensor w/ ID: 28-xxxxx` - If you set up your DS18B20 sensors correctly, you should see it's ID listed. Enter `Y` and answer the prompts to configure it. If you have multiple sensors, you will be asked this question multiple times.
+* `Sensor alias:` - Name to display in the web browser for this sensor.
+* `High temperature:` - The high temperature to kick the cooling on.
+* `Cooling minutes:` - The number of minutes to run the cooler once the temperature is below the High temperature threshold.
+* `Cooling GPIO:` - The pin your cooling relay switch is hooked into.
+* `Invert cooling switch` - If set to `true`, the cooling will be ON when the switch is LOW. This should usually be `false`, so that is the default
+* `Low temperature:` - The low temperature to kick the heating on.
+* `Heating minutes:` - The number of minutes to run the heater once the temperature is below the Low temperature threshold.
+* `Heating GPIO:` - The pin your heating relay switch is hooked into.
+* `Invert heating switch` - If set to `true`, the heating will be ON when the switch is LOW. This should usually be `false`, so that is the default
+* `Enable verbose logging` - If set to `true`, TempGopher will display in the console every thermostat reading. This can be quite verbose, so the default is `false`.
 
-## Running
-
-You can run it directly in the comment line like:
+## Example configuration script
 
 ```
-./tempgopher -c config.yml run
-```
+$ bash install.sh
 
-You can run it in the background using `nohup`:
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   147  100   147    0     0    357      0 --:--:-- --:--:-- --:--:--   356
 
-```
-nohup ./tempgopher -c config.yml run &
-```
+TempGopher v0.2.0
+You will now be asked a series of questions to help configure your thermostat.
+Don't worry, it will all be over quickly.
 
-Or use `systemctl` or some other process supervisor to run it.
-
-## REST API
-
-There is a very simple REST API for viewing the current configuration and status. The application launches and binds to `:8080`.
-
-To view the current status, query `http://<pi>:8080/api/status`:
-
-```
-$ curl -s http://localhost:8080/api/status | jq .
-{
-  "fermenter": {
-    "alias": "fermenter",
-    "temp": 19.812,
-    "cooling": false,
-    "heating": false,
-    "reading": "2018-10-03T08:43:05.795870992-06:00",
-    "changed": "2999-01-01T00:00:00Z"
-  }
-}
-```
-
-To view the current configuration, query `http://<pi>:8080/api/config`:
-
-```
-$ curl -s http://localhost:8080/api/config | jq .
-{
-  "Sensors": [
-    {
-      "id": "28-000008083108",
-      "alias": "fermenter",
-      "hightemp": 30,
-      "lowtemp": 27,
-      "heatgpio": 13,
-      "heatinvert": false,
-      "heatminutes": 1,
-      "coolgpio": 19,
-      "coolinvert": false,
-      "coolminutes": 4,
-      "verbose": false
-    }
-  ]
-}
+Default values will be in brackets. Just press enter if they look good.
+=====
+Listen address?
+[:8080]:
+Base URL? (This is what you type into your browser to get to the web UI)
+[http://beerpi:8080]: http://10.30.14.130:8080
+Display temperatures in fahrenheit? (Otherwise uses celsius)
+[true]:
+Configure sensor w/ ID: 28-000008083108
+[Y/n]:
+Sensor alias: fermenter
+High temperature: 20
+Cooling minutes: 4
+Cooling GPIO: 19
+Invert cooling switch [false]:
+Low temperature: 19
+Heating minutes: 0.5
+Heating GPIO: 13
+Invert heating switch [false]:
+Enable verbose logging [false]:
 ```

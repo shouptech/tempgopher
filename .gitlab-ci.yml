@@ -34,3 +34,4 @@ build:
   artifacts:
     paths:
     - tempgopher
+    - install.sh
