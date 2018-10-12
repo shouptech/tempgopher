@@ -1,5 +1,13 @@
 # TempGopher Changelog
 
+## 0.2.0
+
+Release: 2018-10-11
+
+* You can now update the configuration using the UI or API
+* A script to help install has been added
+* The binary will now generate a usable configuration
+
 ## 0.1.1
 
 Release: 2018-10-07
