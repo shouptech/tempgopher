@@ -39,6 +39,7 @@ You will be asked some questions during the initial configuration of TempGopher.
 * `Heating GPIO:` - The pin your heating relay switch is hooked into.
 * `Invert heating switch` - If set to `true`, the heating will be ON when the switch is LOW. This should usually be `false`, so that is the default
 * `Enable verbose logging` - If set to `true`, TempGopher will display in the console every thermostat reading. This can be quite verbose, so the default is `false`.
+* `Write data to an Influx database?` - Whether or not to configure an Influx database
 
 ## Example configuration script
 
@@ -73,4 +74,13 @@ Heating minutes: 0.5
 Heating GPIO: 13
 Invert heating switch [false]:
 Enable verbose logging [false]:
+Write data to an Influx database?
+[Y/n]: y
+Influx address [http://influx:8086]:
+Influx Username []:
+Influx Password []:
+Influx UserAgent [InfluxDBClient]:
+Influx timeout (in seconds) [30]:
+Influx database []: tempgopher
+Enable InsecureSkipVerify? [fasle]:
 ```

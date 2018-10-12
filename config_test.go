@@ -7,25 +7,27 @@ import (
 )
 
 func Test_LoadConfig(t *testing.T) {
-	testSensor := Sensor{
-		ID:          "28-000008083108",
-		Alias:       "fermenter",
-		HighTemp:    8,
-		LowTemp:     4,
-		HeatGPIO:    5,
-		HeatInvert:  true,
-		HeatMinutes: 5,
-		CoolGPIO:    17,
-		CoolInvert:  false,
-		CoolMinutes: 10,
-		Verbose:     true,
-	}
 
 	testConfig := Config{
-		Sensors:           []Sensor{testSensor},
+		Sensors: []Sensor{
+			Sensor{
+				ID:          "28-000008083108",
+				Alias:       "fermenter",
+				HighTemp:    8,
+				LowTemp:     4,
+				HeatGPIO:    5,
+				HeatInvert:  true,
+				HeatMinutes: 5,
+				CoolGPIO:    17,
+				CoolInvert:  false,
+				CoolMinutes: 10,
+				Verbose:     true,
+			},
+		},
 		BaseURL:           "https://foo.bar",
 		ListenAddr:        "127.0.0.1:8080",
 		DisplayFahrenheit: true,
+		Influx:            Influx{Addr: "http://foo:8086"},
 	}
 
 	loadedConfig, err := LoadConfig("tests/test_config.yml")

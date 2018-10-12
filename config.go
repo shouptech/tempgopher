@@ -10,6 +10,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Influx defines an Influx database configuration
+type Influx struct {
+	Addr               string  `json:"string"             yaml:"addr"`
+	Username           string  `json:"username"           yaml:"username"`
+	Password           string  `json:"-"                  yaml:"password"`
+	UserAgent          string  `json:"useragent"          yaml:"useragent"`
+	Timeout            float64 `json:"timeout"            yaml:"timeout"`
+	InsecureSkipVerify bool    `json:"insecureskipverify" yaml:"insecureskipverify"`
+	Database           string  `json:"database" yaml:"database"`
+}
+
 // Sensor defines configuration for a temperature sensor.
 type Sensor struct {
 	ID          string  `json:"id"          yaml:"id"`
@@ -31,6 +42,7 @@ type Config struct {
 	BaseURL           string   `yaml:"baseurl"`
 	ListenAddr        string   `yaml:"listenaddr"`
 	DisplayFahrenheit bool     `yaml:"displayfahrenheit"`
+	Influx            Influx   `yaml:"influx"`
 }
 
 var configFilePath string
