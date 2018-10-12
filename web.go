@@ -124,17 +124,16 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	// Ping
 	r.GET("/ping", PingHandler)
 
-	// Status
-	r.GET("/api/status", StatusHandler(states))
-	r.GET("/api/status/*alias", StatusHandler(states))
-
-	// API Version
-	r.GET("/api/version", VersionHandler)
-
-	// Config
-	r.GET("/api/config", ConfigHandler(config))
-	r.GET("/api/config/sensors/*alias", ConfigHandler(config))
-	r.POST("/api/config/sensors", UpdateSensorsHandler)
+	// API Endpoints
+	api := r.Group("/api")
+	{
+		api.GET("/status", StatusHandler(states))
+		api.GET("/status/*alias", StatusHandler(states))
+		api.GET("/version", VersionHandler)
+		api.GET("/config", ConfigHandler(config))
+		api.GET("/config/sensors/*alias", ConfigHandler(config))
+		api.POST("/config/sensors", UpdateSensorsHandler)
+	}
 
 	// App
 	r.GET("/jsconfig.js", JSConfigHandler(config))
