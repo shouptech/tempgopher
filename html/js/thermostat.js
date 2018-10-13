@@ -1,6 +1,7 @@
 // Set the auth header if necessary
 function authHeaders(xhr) {
     if (window.localStorage.getItem("authtoken") !== null) {
+        var authToken = window.localStorage.getItem("authtoken");
         xhr.setRequestHeader("Authorization", "Basic " + authToken);
     }
 }
@@ -23,6 +24,19 @@ function redirectIfNotAuthorized() {
 
 // Call the redirect function
 redirectIfNotAuthorized();
+
+// Display version at bottom of page
+function renderVersion() {
+    $.ajax({
+        url: jsconfig.baseurl + "/api/version",
+        beforeSend: authHeaders
+    }).then(function(data) {
+        var versionText = "TempGopher © 2018 Mike Shoup | Version: " + data.version;
+        $("#version").text(versionText);
+    });
+};
+$(document).ready(renderVersion);
+
 
 function celsiusToFahrenheit(degree) {
     return degree * 1.8 + 32;
