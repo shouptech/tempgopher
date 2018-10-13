@@ -130,7 +130,8 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	if len(config.Users) == 0 {
 		api = r.Group("/api")
 	} else {
-		api = r.Group("/api", gin.BasicAuth(GetGinAccounts(config)))
+		api = r.Group("/api")
+		api.Use(BasicAuth(GetGinAccounts(config)))
 	}
 
 	api.GET("/status", StatusHandler(states))
@@ -166,7 +167,7 @@ func reloadWebConfig(c *Config, p string) error {
 
 // GetGinAccounts returns a gin.Accounts struct with values pulled from a Config struct
 func GetGinAccounts(config *Config) gin.Accounts {
-	var a gin.Accounts
+	a := make(gin.Accounts)
 	for _, user := range config.Users {
 		a[user.Name] = user.Password
 	}

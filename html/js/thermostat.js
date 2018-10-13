@@ -12,10 +12,10 @@ function redirectIfNotAuthorized() {
         beforeSend: authHeaders,
         statusCode: {
             401: function() {
-                window.location.replace(baseurl + "/app/login.html");
+                window.location.replace(jsconfig.baseurl + "/app/login.html");
             },
             403: function() {
-                window.location.replace(baseurl + "/app/login.html");
+                window.location.replace(jsconfig.baseurl + "/app/login.html");
             }
         }
     });
