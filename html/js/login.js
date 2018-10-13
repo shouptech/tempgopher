@@ -6,12 +6,5 @@ function processLogin() {
     window.location.replace(jsconfig.baseurl + "/app/");
 };
 
-function addClickToLogin() {
-    $("#loginButton").click(processLogin);
-};
-
 // If the login page is displayed, we need to remvoe any existing auth tokens
 window.localStorage.removeItem("authtoken");
-
-// Set the click function for the login button
-$(document).ready(addClickToLogin);

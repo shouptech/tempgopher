@@ -18,18 +18,20 @@
             <div class="four columns offset-by-four"><h3 style="text-align: center">Login</h3></div>
         </div>
     </div>
-    <div class="container">
-        <div class="row">
-            <div class="two columns offset-by-two" style="text-align: right">Username:</div>
-            <div class="four columns"><input type="text" style="width: 100%" id="loginName" /></div>
+    <form onsubmit="processLogin(); return false;">
+        <div class="container">
+            <div class="row">
+                <div class="two columns offset-by-two" style="text-align: right">Username:</div>
+                <div class="four columns"><input type="text" style="width: 100%" id="loginName" /></div>
+            </div>
+            <div class="row">
+                <div class="two columns offset-by-two" style="text-align: right">Password:</div>
+                <div class="four columns"><input type="password" style="width: 100%" id="loginPassword" /></div>
+            </div>
+            <div class="row">
+                <div class="four columns offset-by-four"><button type="submit" id="loginButton" style="width: 100%" class="button button-primary">Login</button></div>
+            </div>
         </div>
-        <div class="row">
-            <div class="two columns offset-by-two" style="text-align: right">Password:</div>
-            <div class="four columns"><input type="password" style="width: 100%" id="loginPassword" /></div>
-        </div>
-        <div class="row">
-            <div class="four columns offset-by-four"><button type="submit" id="loginButton" style="width: 100%" class="button button-primary">Login</button></div>
-        </div>
-    </div>
+    </form>
 </body>
 </html>
