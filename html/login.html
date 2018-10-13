@@ -10,16 +10,27 @@
     <link rel="icon" type="image/png" href="img/favicon.png">
     <script src="js/jquery.min.js"></script>
     <script src="/jsconfig.js"></script>
-    <script src="js/thermostat.js"></script>
     <script src="js/version.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="row" style="margin-top: 5%">
-            <h3>Thermostats</h3>
+            <div class="four columns offset-by-four"><h3 style="text-align: center">Login</h3></div>
         </div>
     </div>
-    <div class="container" id="thermostats"></div>
+    <div class="container">
+        <div class="row">
+            <div class="two columns offset-by-two" style="text-align: right">Username:</div>
+            <div class="four columns"><input type="text" style="width: 100%" id="loginName" /></div>
+        </div>
+        <div class="row">
+            <div class="two columns offset-by-two" style="text-align: right">Password:</div>
+            <div class="four columns"><input type="password" style="width: 100%" id="loginPassword" /></div>
+        </div>
+        <div class="row">
+            <div class="four columns offset-by-four"><button type="submit" style="width: 100%" class="button button-primary">Login</button></div>
+        </div>
+    </div>
     <div class="container">
         <div class="row" style="margin-top: 10rem">
             <h6 id="version"></h6>

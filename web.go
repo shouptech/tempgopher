@@ -126,15 +126,19 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	r.GET("/ping", PingHandler)
 
 	// API Endpoints
-	api := r.Group("/api", gin.BasicAuth(GetGinAccounts(config)))
-	{
-		api.GET("/status", StatusHandler(states))
-		api.GET("/status/*alias", StatusHandler(states))
-		api.GET("/version", VersionHandler)
-		api.GET("/config", ConfigHandler(config))
-		api.GET("/config/sensors/*alias", ConfigHandler(config))
-		api.POST("/config/sensors", UpdateSensorsHandler)
+	var api *gin.RouterGroup
+	if len(config.Users) == 0 {
+		api = r.Group("/api")
+	} else {
+		api = r.Group("/api", gin.BasicAuth(GetGinAccounts(config)))
 	}
+
+	api.GET("/status", StatusHandler(states))
+	api.GET("/status/*alias", StatusHandler(states))
+	api.GET("/version", VersionHandler)
+	api.GET("/config", ConfigHandler(config))
+	api.GET("/config/sensors/*alias", ConfigHandler(config))
+	api.POST("/config/sensors", UpdateSensorsHandler)
 
 	// App
 	r.GET("/jsconfig.js", JSConfigHandler(config))
