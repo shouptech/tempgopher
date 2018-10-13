@@ -37,6 +37,20 @@ function renderVersion() {
 };
 $(document).ready(renderVersion);
 
+function displayLogoutButton() {
+    if (window.localStorage.getItem("authtoken") !== null) {
+        // Display a logout button
+        var logoutButton = $("<button>")
+            .text('Logout')
+            .click(function() {
+                window.localStorage.removeItem("authtoken");
+                window.location.replace(jsconfig.baseurl + "/app/login.html");
+            });
+        $("#logoutDiv").append(logoutButton);
+    };
+}
+
+$(document).ready(displayLogoutButton);
 
 function celsiusToFahrenheit(degree) {
     return degree * 1.8 + 32;
