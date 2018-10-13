@@ -1,14 +1,41 @@
+// Set the auth header if necessary
+function authHeaders(xhr) {
+    if (window.localStorage.getItem("authtoken") !== null) {
+        xhr.setRequestHeader("Authorization", "Basic " + authToken);
+    }
+}
+
+// Redirect if not authorized
+function redirectIfNotAuthorized() {
+    $.ajax({
+        url: jsconfig.baseurl + "/api/version",
+        beforeSend: authHeaders,
+        statusCode: {
+            401: function() {
+                window.location.replace(baseurl + "/app/login.html");
+            },
+            403: function() {
+                window.location.replace(baseurl + "/app/login.html");
+            }
+        }
+    });
+};
+
+// Call the redirect function
+redirectIfNotAuthorized();
+
 function celsiusToFahrenheit(degree) {
     return degree * 1.8 + 32;
 }
 
 function fahrenheitToCelsius(degree) {
     return (degree - 32) * 5 / 9;
-}
+};
 
 function renderThermostats() {
     $.ajax({
-        url: jsconfig.baseurl + "/api/status/"
+        url: jsconfig.baseurl + "/api/status/",
+        beforeSend: authHeaders
     }).then(function(data) {
         $("#thermostats").empty();
         for (var key in data) {
@@ -44,7 +71,8 @@ function renderThermostats() {
 
             // Display sensor config
             $.ajax({
-                url: jsconfig.baseurl + "/api/config/sensors/" + data[key].alias
+                url: jsconfig.baseurl + "/api/config/sensors/" + data[key].alias,
+                beforeSend: authHeaders
             }).then(function(configData){
                 if (jsconfig.fahrenheit) {
                     var degUnit = "°F";
@@ -79,6 +107,7 @@ function renderThermostats() {
                     $.ajax({
                         type: "POST",
                         url: jsconfig.baseurl + "/api/config/sensors",
+                        beforeSend: authHeaders,
                         data: JSON.stringify([{
                             "id": configData.id,
                             "alias": configData.alias,
