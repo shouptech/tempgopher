@@ -7,12 +7,6 @@ import (
 )
 
 func Test_LoadConfig(t *testing.T) {
-
-	testUser := User{
-		Name:     "foo",
-		Password: "bar",
-	}
-
 	testConfig := Config{
 		Sensors: []Sensor{
 			Sensor{
@@ -29,7 +23,12 @@ func Test_LoadConfig(t *testing.T) {
 				Verbose:     true,
 			},
 		},
-		Users:             []User{testUser},
+		Users: []User{
+			User{
+				Name:     "foo",
+				Password: "bar",
+			},
+		},
 		BaseURL:           "https://foo.bar",
 		ListenAddr:        "127.0.0.1:8080",
 		DisplayFahrenheit: true,
