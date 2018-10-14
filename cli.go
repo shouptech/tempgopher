@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/howeyc/gopass"
+
 	"github.com/yryz/ds18b20"
 )
 
@@ -187,6 +189,29 @@ func PromptForConfiguration() Config {
 		config.Influx.InsecureSkipVerify, err = strconv.ParseBool(ReadInput(reader, "false"))
 		if err != nil {
 			panic(err)
+		}
+	}
+
+	fmt.Println("Enable user authentication?")
+	fmt.Print("[Y/n]: ")
+	choice = ReadInput(reader, "y")
+	if strings.ToLower(choice)[0] == 'y' {
+		another := true
+		for another {
+			fmt.Print("Username: ")
+			username := ReadInput(reader, "")
+			fmt.Print("Password: ")
+			password, err := gopass.GetPasswdMasked()
+			if err != nil {
+				panic(err)
+			}
+			config.Users = append(config.Users, User{username, string(password)})
+
+			fmt.Print("Add another user? [y/N]: ")
+			choice = ReadInput(reader, "n")
+			if strings.ToLower(choice)[0] == 'n' {
+				another = false
+			}
 		}
 	}
 
