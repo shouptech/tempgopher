@@ -70,11 +70,18 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 
 	state.When = time.Now()
 
+	var cpin rpio.Pin
+	var hpin rpio.Pin
 	// Initialize the pins
-	cpin := rpio.Pin(sensor.CoolGPIO)
-	cpin.Output()
-	hpin := rpio.Pin(sensor.HeatGPIO)
-	hpin.Output()
+	if !sensor.CoolDisable {
+		cpin = rpio.Pin(sensor.CoolGPIO)
+		cpin.Output()
+	}
+
+	if !sensor.HeatDisable {
+		hpin = rpio.Pin(sensor.HeatGPIO)
+		hpin.Output()
+	}
 
 	// Calculate duration
 	duration := time.Since(state.Changed).Minutes()
@@ -83,14 +90,14 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 	case temp > sensor.HighTemp && temp < sensor.LowTemp:
 		log.Println("Invalid state! Temperature is too high AND too low!")
 	// Temperature too high, start cooling
-	case temp > sensor.HighTemp:
+	case temp > sensor.HighTemp && !sensor.CoolDisable:
 		PinSwitch(cpin, true, sensor.CoolInvert)
 		state.Cooling = true
 		PinSwitch(hpin, false, sensor.HeatInvert) // Ensure the heater is off
 		state.Heating = false
 		state.Changed = future
 	// Temperature too low, start heating
-	case temp < sensor.LowTemp:
+	case temp < sensor.LowTemp && !sensor.HeatDisable:
 		PinSwitch(hpin, true, sensor.HeatInvert)
 		state.Heating = true
 		PinSwitch(cpin, false, sensor.CoolInvert) // Ensure the chiller is off
@@ -126,13 +133,16 @@ func ProcessSensor(sensor Sensor, state State) (State, error) {
 
 // TurnOffSensor turns off all switches for an individual sensor
 func TurnOffSensor(sensor Sensor) {
-	cpin := rpio.Pin(sensor.CoolGPIO)
-	cpin.Output()
-	PinSwitch(cpin, false, sensor.CoolInvert)
-
-	hpin := rpio.Pin(sensor.HeatGPIO)
-	hpin.Output()
-	PinSwitch(hpin, false, sensor.HeatInvert)
+	if !sensor.CoolDisable {
+		cpin := rpio.Pin(sensor.CoolGPIO)
+		cpin.Output()
+		PinSwitch(cpin, false, sensor.CoolInvert)
+	}
+	if !sensor.HeatDisable {
+		hpin := rpio.Pin(sensor.HeatGPIO)
+		hpin.Output()
+		PinSwitch(hpin, false, sensor.HeatInvert)
+	}
 }
 
 // TurnOffSensors turns off all sensors defined in the config

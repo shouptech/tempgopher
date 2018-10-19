@@ -27,9 +27,11 @@ type Sensor struct {
 	Alias       string  `json:"alias"       yaml:"alias"`
 	HighTemp    float64 `json:"hightemp"    yaml:"hightemp"`
 	LowTemp     float64 `json:"lowtemp"     yaml:"lowtemp"`
+	HeatDisable bool    `json:"heatdisable" yaml:"heatdisable"`
 	HeatGPIO    int32   `json:"heatgpio"    yaml:"heatgpio"`
 	HeatInvert  bool    `json:"heatinvert"  yaml:"heatinvert"`
 	HeatMinutes float64 `json:"heatminutes" yaml:"heatminutes"`
+	CoolDisable bool    `json:"cooldisable" yaml:"cooldisable"`
 	CoolGPIO    int32   `json:"coolgpio"    yaml:"coolgpio"`
 	CoolInvert  bool    `json:"coolinvert"  yaml:"coolinvert"`
 	CoolMinutes float64 `json:"coolminutes" yaml:"coolminutes"`

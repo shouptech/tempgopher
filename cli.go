@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/howeyc/gopass"
-
 	"github.com/yryz/ds18b20"
 )
 
@@ -101,54 +100,72 @@ func PromptForConfiguration() Config {
 			panic("Alias cannot be blank")
 		}
 
-		fmt.Print("High temperature: ")
-		s.HighTemp, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+		fmt.Print("Disable cooling? [false]: ")
+		s.CoolDisable, err = strconv.ParseBool(ReadInput(reader, "false"))
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Print("Cooling minutes: ")
-		s.CoolMinutes, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+		if !s.CoolDisable {
+
+			fmt.Print("High temperature: ")
+			s.HighTemp, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Print("Cooling minutes: ")
+			s.CoolMinutes, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Print("Cooling GPIO: ")
+			resp, err := strconv.ParseInt(ReadInput(reader, ""), 10, 32)
+			s.CoolGPIO = int32(resp)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Print("Invert cooling switch [false]: ")
+			s.CoolInvert, err = strconv.ParseBool(ReadInput(reader, "false"))
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		fmt.Print("Disable heating? [false]: ")
+		s.HeatDisable, err = strconv.ParseBool(ReadInput(reader, "false"))
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Print("Cooling GPIO: ")
-		resp, err := strconv.ParseInt(ReadInput(reader, ""), 10, 32)
-		s.CoolGPIO = int32(resp)
-		if err != nil {
-			panic(err)
-		}
+		if !s.HeatDisable {
 
-		fmt.Print("Invert cooling switch [false]: ")
-		s.CoolInvert, err = strconv.ParseBool(ReadInput(reader, "false"))
-		if err != nil {
-			panic(err)
-		}
+			fmt.Print("Low temperature: ")
+			s.LowTemp, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+			if err != nil {
+				panic(err)
+			}
 
-		fmt.Print("Low temperature: ")
-		s.LowTemp, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
-		if err != nil {
-			panic(err)
-		}
+			fmt.Print("Heating minutes: ")
+			s.HeatMinutes, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
+			if err != nil {
+				panic(err)
+			}
 
-		fmt.Print("Heating minutes: ")
-		s.HeatMinutes, err = strconv.ParseFloat(ReadInput(reader, ""), 64)
-		if err != nil {
-			panic(err)
-		}
+			fmt.Print("Heating GPIO: ")
+			resp, err := strconv.ParseInt(ReadInput(reader, ""), 10, 32)
+			s.HeatGPIO = int32(resp)
+			if err != nil {
+				panic(err)
+			}
 
-		fmt.Print("Heating GPIO: ")
-		resp, err = strconv.ParseInt(ReadInput(reader, ""), 10, 32)
-		s.HeatGPIO = int32(resp)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Print("Invert heating switch [false]: ")
-		s.HeatInvert, err = strconv.ParseBool(ReadInput(reader, "false"))
-		if err != nil {
-			panic(err)
+			fmt.Print("Invert heating switch [false]: ")
+			s.HeatInvert, err = strconv.ParseBool(ReadInput(reader, "false"))
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		fmt.Print("Enable verbose logging [false]: ")
