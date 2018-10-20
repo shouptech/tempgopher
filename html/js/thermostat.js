@@ -118,8 +118,18 @@ function renderThermostats() {
                 var hmIn = $("<input>").attr("id", "hm" + configData.alias).val(configData.heatminutes).attr("size", "2").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
                 var ltIn = $("<input>").attr("id", "lt" + configData.alias).val(lowtemp).attr("size", "4").attr("pattern", rp).on('input', function(){window.clearInterval(rtHandle)});
 
-                var configp = $("<p></p>").text("Chills for ").append(cmIn).append(" minutes when &gt; ").append(htIn).append(degUnit).append($("<br>"));
-                configp.append("Heats for ").append(hmIn).append(" minutes when &lt; ").append(ltIn).append(degUnit);
+                var configp = $("<p></p>")
+                if (!configData.cooldisable) {
+                    configp.append("Chills for ").append(cmIn).append(" minutes when &gt; ").append(htIn).append(degUnit);
+                }
+
+                if (!configData.cooldisable && !configData.heatdisable){
+                    configp.append($("<br>"));
+                }
+
+                if (!configData.heatdisable) {
+                    configp.append("Heats for ").append(hmIn).append(" minutes when &lt; ").append(ltIn).append(degUnit);
+                }
 
                 var configdiv = $("<div></div>").addClass("five columns").append(configp);
                 rowdiv.append(configdiv);
@@ -159,9 +169,10 @@ function renderThermostats() {
                     renderThermostats();
                 });
 
-                var buttonDiv = $("<div></div>").addClass("three columns").append(yesButton).append(noButton);
-                rowdiv.append(buttonDiv);
-                //var confForm = $("<form></form>").append(rowdiv);
+                if (!configData.heatdisable || !configData.cooldisable) {
+                    var buttonDiv = $("<div></div>").addClass("three columns").append(yesButton).append(noButton);
+                    rowdiv.append(buttonDiv);
+                }
 
                 // Add things back to the thermostat list
                 $("#thermostats").append(titlediv);
