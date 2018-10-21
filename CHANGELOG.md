@@ -1,5 +1,14 @@
 # TempGopher Changelog
 
+## 0.3.0
+
+Release: 2018-10-20
+
+* You can now supply a list of users for simple authentication
+* Will write data to an Influx DB if configured
+* Adds the ability to selectively disable heating or cooling
+* Checks for the existence of a config file before generating a new one
+
 ## 0.2.0
 
 Release: 2018-10-11
