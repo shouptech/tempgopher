@@ -16,7 +16,7 @@ sudo chmod +x $INSTALLBIN
 sudo chown -R $INSTALLUSER: $INSTALLDIR
 
 # Generate a configuration file
-sudo -u $INSTALLUSER $INSTALLBIN -c $CONFIGFILE config
+sudo -u $INSTALLUSER $INSTALLBIN -c $CONFIGFILE config || true
 
 # Create unit file
 sudo sh -c "cat > /etc/systemd/system/tempgopher.service" << EOM

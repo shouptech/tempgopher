@@ -237,6 +237,12 @@ func PromptForConfiguration() Config {
 
 // ConfigCLI prompts the user for configuration and writes to a config file
 func ConfigCLI(path string) {
+	// Check if path exists
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		fmt.Printf("File exists, or some other error trying to open file %s\n", path)
+		os.Exit(1)
+	}
+
 	config := PromptForConfiguration()
 
 	SaveConfig(path, config)
