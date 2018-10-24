@@ -202,7 +202,7 @@ func PromptForConfiguration() Config {
 		fmt.Print("Influx database []: ")
 		config.Influx.Database = ReadInput(reader, "")
 
-		fmt.Print("Enable InsecureSkipVerify? [fasle]: ")
+		fmt.Print("Enable InsecureSkipVerify? [false]: ")
 		config.Influx.InsecureSkipVerify, err = strconv.ParseBool(ReadInput(reader, "false"))
 		if err != nil {
 			panic(err)
