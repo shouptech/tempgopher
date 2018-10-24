@@ -1,5 +1,12 @@
 # TempGopher Changelog
 
+## 0.3.1
+
+Release: 2018-10-24
+
+* Fixes bug where UI would not display two sensors correctly [#15](https://gitlab.com/shouptech/tempgopher/issues/15)
+* Fixes a typo during the CLI configuration [#14](https://gitlab.com/shouptech/tempgopher/issues/14)
+
 ## 0.3.0
 
 Release: 2018-10-20

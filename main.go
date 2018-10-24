@@ -8,7 +8,7 @@ import (
 )
 
 // Version is the current code version of tempgopher
-const Version = "0.3.1-dev"
+const Version = "0.3.1"
 
 func main() {
 	var args struct {
