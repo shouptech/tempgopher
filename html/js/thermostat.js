@@ -180,8 +180,16 @@ function renderThermostats() {
         beforeSend: authHeaders
     }).then(function(data) {
         $("#thermostats").empty();
-        for (var key in data) {
-            appendData(data[key])
+
+        // Sort by sensor alias
+        var sorted = [];
+        for(var key in data) {
+            sorted[sorted.length] = key;
+        }
+        sorted.sort();
+
+        for (var i in sorted) {
+            appendData(data[sorted[i]])
         };
     });
 };
