@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"io/ioutil"
-	"log"
 	"os"
 	"syscall"
 
@@ -75,15 +74,12 @@ func UpdateSensorConfig(s Sensor) error {
 			config.Sensors[i].CoolInvert = s.CoolInvert
 			config.Sensors[i].CoolMinutes = s.CoolMinutes
 			config.Sensors[i].Verbose = s.Verbose
-			log.Println(config.Sensors[i])
 		}
 	}
 
 	if err = SaveConfig(configFilePath, *config); err != nil {
 		return err
 	}
-
-	log.Println(config.Sensors[0])
 
 	if err = SignalReload(); err != nil {
 		return err
