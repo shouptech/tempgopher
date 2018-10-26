@@ -22,7 +22,9 @@ test:
     GIN_MODE: debug
   script:
   - go get -v -t ./...
-  - go test -v
+  - go test -v -coverprofile=$CI_PROJECT_DIR/coverage.out
+  artifacts:
+  - coverage.out
 
 build:
   stage: build
