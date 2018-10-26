@@ -153,13 +153,15 @@ function appendData(data) {
                     "coolminutes": parseFloat(cmIn.val()),
                     "verbose": configData.verbose
                 }])
-            })
-            window.setInterval(renderThermostats, 60000);
+            });
+            window.clearInterval(rtHandle);
+            rtHandle = window.setInterval(renderThermostats, 60000);
             renderThermostats();
         });
 
         var noButton = $("<button></button>").addClass("button").text("✘").click(function() {
-            window.setInterval(renderThermostats, 60000);
+            window.clearInterval(rtHandle);
+            rtHandle = window.setInterval(renderThermostats, 60000);
             renderThermostats();
         });
 
