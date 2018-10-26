@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_UpdateSensortConfig(t *testing.T) {
+func Test_UpdateSensorConfig(t *testing.T) {
 	testConfig := Config{
 		Sensors: []Sensor{
 			Sensor{

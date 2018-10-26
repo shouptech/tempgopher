@@ -104,6 +104,15 @@ func VersionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, version{Version: Version})
 }
 
+// AppHandler returns 301 to /app
+func AppHandler(config *Config) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		c.Redirect(http.StatusPermanentRedirect, config.BaseURL+"/app/")
+	}
+
+	return fn
+}
+
 // SetupRouter initializes the gin router.
 func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	// If not specified, put gin in release mode
@@ -146,9 +155,7 @@ func SetupRouter(config *Config, states *map[string]State) *gin.Engine {
 	r.StaticFS("/app", GetBox())
 
 	// Redirect / to /app
-	r.Any("/", func(c *gin.Context) {
-		c.Redirect(301, config.BaseURL+"/app/")
-	})
+	r.Any("/", AppHandler(config))
 
 	return r
 }
