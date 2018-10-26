@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -40,8 +41,8 @@ func ParsePort(addr string) (uint16, error) {
 }
 
 // PromptForConfiguration walks a user through configuration
-func PromptForConfiguration() Config {
-	reader := bufio.NewReader(os.Stdin)
+func PromptForConfiguration(in io.Reader) Config {
+	reader := bufio.NewReader(in)
 
 	var config Config
 
@@ -243,7 +244,7 @@ func ConfigCLI(path string) {
 		os.Exit(1)
 	}
 
-	config := PromptForConfiguration()
+	config := PromptForConfiguration(os.Stdin)
 
 	SaveConfig(path, config)
 }
