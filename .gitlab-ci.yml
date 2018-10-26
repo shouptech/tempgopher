@@ -24,7 +24,8 @@ test:
   - go get -v -t ./...
   - go test -v -coverprofile=$CI_PROJECT_DIR/coverage.out
   artifacts:
-  - coverage.out
+    paths:
+    - coverage.out
 
 build:
   stage: build
