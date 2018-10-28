@@ -256,3 +256,35 @@ func Test_GetGinAccounts(t *testing.T) {
 
 	assert.Equal(t, testUsers, actualUsers)
 }
+
+func Test_reloadWebConfig(t *testing.T) {
+	// Save zero-valued config
+	testConfig := Config{
+		Sensors:    []Sensor{},
+		Users:      []User{},
+		ListenAddr: ":8080",
+	}
+
+	newConfig := Config{
+		Sensors:    []Sensor{},
+		Users:      []User{},
+		BaseURL:    "http://localhost:8080",
+		ListenAddr: ":8080",
+	}
+
+	// Create a temp file to store newConfig
+	tmpfile, err := ioutil.TempFile("", "tempgopher")
+	assert.Equal(t, nil, err)
+	defer os.Remove(tmpfile.Name()) // Remove the tempfile when done
+	SaveConfig(tmpfile.Name(), newConfig)
+
+	// Test that newConfig is copied to testConfig
+	err = reloadWebConfig(&testConfig, tmpfile.Name())
+	assert.Equal(t, nil, err)
+	assert.Equal(t, testConfig, newConfig)
+
+	// Test the error case
+	err = reloadWebConfig(&testConfig, "/does/not/exist")
+	assert.NotEqual(t, nil, err)
+
+}
