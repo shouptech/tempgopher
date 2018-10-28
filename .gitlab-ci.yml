@@ -21,6 +21,7 @@ test:
   variables:
     GIN_MODE: debug
     INFLUXDB_DB: db
+    INFLUXDB_ADDR: http://influxdb:8086
   services:
   - influxdb
   script:

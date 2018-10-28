@@ -1,12 +1,14 @@
 package main
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_WriteStateToInflux(t *testing.T) {
+	influxAddr := os.Getenv("INFLUXDB_ADDR")
 	state := State{Temp: 32}
 
 	// Test failure with empty config
@@ -14,11 +16,11 @@ func Test_WriteStateToInflux(t *testing.T) {
 	assert.NotEqual(t, nil, err)
 
 	// Test failure with missing database
-	err = WriteStateToInflux(state, Influx{Addr: "http://127.0.0.1:8086"})
+	err = WriteStateToInflux(state, Influx{Addr: influxAddr})
 	assert.NotEqual(t, nil, err)
 
 	// Test success with writing to database
-	config := Influx{Addr: "http://127.0.0.1:8086", Database: "db"}
+	config := Influx{Addr: influxAddr, Database: "db"}
 	err = WriteStateToInflux(state, config)
 	assert.Equal(t, nil, err)
 }
