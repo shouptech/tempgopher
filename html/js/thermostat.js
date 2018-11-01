@@ -146,7 +146,7 @@ function appendData(data) {
             honChecked = true;
         }
         var hon = $('<input type="checkbox">').attr("id", "hon" + configData.alias).prop('checked', honChecked).on('input', function(){window.clearInterval(rtHandle)})
-        var heatCheck = $('<label></label>').text("🔥").prepend(hon);
+        var heatCheck = $('<label></label>').text("♨").prepend(hon);
 
 
         var offOnDiv = $("<div></div>").addClass("one columns").append(coolCheck).append(heatCheck);
