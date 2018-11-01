@@ -69,6 +69,7 @@ function appendData(data) {
     var rowdiv = $("<div></div>");
     rowdiv.addClass("row");
 
+    ////////////////////////////////////////////////////////////////////////////
     // Display temperature
     if (jsconfig.fahrenheit) {
         var temp = celsiusToFahrenheit(parseFloat(data.temp)).toFixed(1) + "°F";
@@ -79,6 +80,7 @@ function appendData(data) {
     var tempdiv = $("<div></div>").addClass("two columns").append(temph);
     rowdiv.append(tempdiv);
 
+    ////////////////////////////////////////////////////////////////////////////
     // Display status
     if (data.cooling) {
         var statustext = "Cooling"
@@ -88,14 +90,16 @@ function appendData(data) {
         var statustext = "Idle"
     }
     var statusp = $("<p></p>").html(statustext);
-    var statusdiv = $("<div></div>").addClass("two columns").append(statusp);
+    var statusdiv = $("<div></div>").addClass("one columns").append(statusp);
     rowdiv.append(statusdiv);
 
-    // Display sensor config
+    // Make AJAX call to get current configuration of the sensor
     $.ajax({
         url: jsconfig.baseurl + "/api/config/sensors/" + data.alias,
         beforeSend: authHeaders
     }).then(function(configData){
+        ////////////////////////////////////////////////////////////////////////
+        // Display current configuration
         if (jsconfig.fahrenheit) {
             var degUnit = "°F";
             var hightemp = celsiusToFahrenheit(parseFloat(configData.hightemp)).toFixed(1);
@@ -125,10 +129,32 @@ function appendData(data) {
             configp.append("Heats for ").append(hmIn).append(" minutes when &lt; ").append(ltIn).append(degUnit);
         }
 
-        var configdiv = $("<div></div>").addClass("five columns").append(configp);
+        var configdiv = $("<div></div>").addClass("six columns").append(configp);
         rowdiv.append(configdiv);
 
-        var yesButton = $("<button></button>").addClass("button button-primary").text("✔").css("margin-right", "5px").click(function() {
+        ////////////////////////////////////////////////////////////////////////
+        // Display options to turn heating/cooling on/off
+        var conChecked = false;
+        if (!configData.cooldisable) {
+            conChecked = true;
+        }
+        var con = $('<input type="checkbox">').attr("id", "con" + configData.alias).prop('checked', conChecked).on('input', function(){window.clearInterval(rtHandle)})
+        var coolCheck = $('<label></label>').text("❄️").prepend(con);
+
+        var honChecked = false;
+        if (!configData.heatdisable) {
+            honChecked = true;
+        }
+        var hon = $('<input type="checkbox">').attr("id", "hon" + configData.alias).prop('checked', honChecked).on('input', function(){window.clearInterval(rtHandle)})
+        var heatCheck = $('<label></label>').text("🔥").prepend(hon);
+
+
+        var offOnDiv = $("<div></div>").addClass("one columns").append(coolCheck).append(heatCheck);
+        rowdiv.append(offOnDiv);
+
+        ////////////////////////////////////////////////////////////////////////
+        // Create yes and no buttons
+        var yesButton = $("<button></button>").addClass("button button-primary").text("✔").click(function() {
             if (jsconfig.fahrenheit) {
                 var newHT = fahrenheitToCelsius(parseFloat(htIn.val()));
                 var newLT = fahrenheitToCelsius(parseFloat(ltIn.val()));
@@ -148,9 +174,11 @@ function appendData(data) {
                     "heatgpio": configData.heatgpio,
                     "heatinvert": configData.heatInvert,
                     "heatminutes": parseFloat(hmIn.val()),
+                    "heatdisable": !hon.is(":checked"),
                     "coolgpio": configData.coolgpio,
                     "coolinvert": configData.coolinvert,
                     "coolminutes": parseFloat(cmIn.val()),
+                    "cooldisable": !con.is(":checked"),
                     "verbose": configData.verbose
                 }])
             });
@@ -165,10 +193,8 @@ function appendData(data) {
             renderThermostats();
         });
 
-        if (!configData.heatdisable || !configData.cooldisable) {
-            var buttonDiv = $("<div></div>").addClass("three columns").append(yesButton).append(noButton);
-            rowdiv.append(buttonDiv);
-        }
+        var buttonDiv = $("<div></div>").addClass("two columns").append(yesButton).append($("<br>")).append(noButton);
+        rowdiv.append(buttonDiv);
 
         // Add things back to the thermostat list
         $("#thermostats").append(titlediv);

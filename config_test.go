@@ -14,13 +14,14 @@ func Test_UpdateSensorConfig(t *testing.T) {
 	testConfig := Config{
 		Sensors: []Sensor{
 			Sensor{
-				Alias: "foo",
+				Alias:       "foo",
+				CoolDisable: true,
 			},
 		},
 		Users:      []User{},
 		ListenAddr: ":8080",
 	}
-	newSensor := Sensor{Alias: "bar"}
+	newSensor := Sensor{Alias: "bar", CoolDisable: false}
 
 	// Create a temp file
 	tmpfile, err := ioutil.TempFile("", "tempgopher")

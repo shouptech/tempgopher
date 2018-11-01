@@ -6,6 +6,7 @@ import (
 	"os"
 	"syscall"
 
+	"github.com/jinzhu/copier"
 	"gopkg.in/yaml.v2"
 )
 
@@ -64,16 +65,7 @@ func UpdateSensorConfig(s Sensor) error {
 
 	for i := range config.Sensors {
 		if config.Sensors[i].ID == s.ID {
-			config.Sensors[i].Alias = s.Alias
-			config.Sensors[i].HighTemp = s.HighTemp
-			config.Sensors[i].LowTemp = s.LowTemp
-			config.Sensors[i].HeatGPIO = s.HeatGPIO
-			config.Sensors[i].HeatInvert = s.HeatInvert
-			config.Sensors[i].HeatMinutes = s.HeatMinutes
-			config.Sensors[i].CoolGPIO = s.CoolGPIO
-			config.Sensors[i].CoolInvert = s.CoolInvert
-			config.Sensors[i].CoolMinutes = s.CoolMinutes
-			config.Sensors[i].Verbose = s.Verbose
+			copier.Copy(&config.Sensors[i], &s)
 		}
 	}
 
