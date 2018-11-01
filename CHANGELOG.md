@@ -1,5 +1,13 @@
 # TempGopher Changelog
 
+## 0.4.0
+
+Release 2018-11-01
+
+* Enable/disable heating or cooling via UI
+* Improved unit tests!
+* Fixed bug where updating/clearing changes would cause multiple refreshes in a row [#17](https://gitlab.com/shouptech/tempgopher/issues/17)
+
 ## 0.3.1
 
 Release: 2018-10-24
